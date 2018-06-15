@@ -22,7 +22,7 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
                                preparation_ops: cirq.OP_TREE=(),
                                initial_state: Union[int, numpy.ndarray]=0,
                                repetitions: Union[int, Sequence[int]]=1,
-                               simulator: cirq.google.Simulator=None,
+                               simulator: cirq.google.XmonSimulator=None,
                                ) -> Tuple[float, numpy.ndarray]:
     """Perform iterative phase estimation.
 
@@ -60,16 +60,16 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
     # TODO use reasonable default for repetitions parameter.
     # maybe take in error probability instead
 
-    simulator = simulator or cirq.google.Simulator()
+    simulator = simulator or cirq.google.XmonSimulator()
     n_bits = len(controlled_unitaries)
 
     # Prepare initial state
     preparation_circuit = cirq.Circuit.from_ops(preparation_ops)
-    result = simulator.run(preparation_circuit,
-                           qubit_order=system_qubits,
-                           initial_state=initial_state)
+    result = simulator.simulate(preparation_circuit,
+                                qubit_order=system_qubits,
+                                initial_state=initial_state)
     zero = [1, 0]
-    initial_state = numpy.kron(zero, result.final_states[0]).astype(
+    initial_state = numpy.kron(zero, result.final_state).astype(
             numpy.complex64)
 
     last_measured_bit = 0
@@ -95,7 +95,7 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
                                       system_qubits,
                                       controlled_unitary,
                                       feedback_half_turns))
-        result = simulator.run(
+        result = simulator.simulate(
             circuit,
             qubit_order=[ancilla_qubit] + list(system_qubits),
             initial_state=current_state,
