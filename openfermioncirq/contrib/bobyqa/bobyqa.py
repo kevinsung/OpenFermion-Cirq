@@ -18,7 +18,7 @@ import pybobyqa
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
-        OptimizeResult)
+        OptimizationResult)
 
 
 class Bobyqa(OptimizationAlgorithm):
@@ -27,7 +27,7 @@ class Bobyqa(OptimizationAlgorithm):
                  black_box: BlackBox,
                  initial_guess: Optional[numpy.ndarray]=None,
                  initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> OptimizeResult:
+                 ) -> OptimizationResult:
         bounds = None
         if black_box.bounds is not None:
             mins = [bound[0] for bound in black_box.bounds]
@@ -37,6 +37,6 @@ class Bobyqa(OptimizationAlgorithm):
                                 initial_guess,
                                 bounds=bounds,
                                 **self.options)
-        return OptimizeResult(optimal_value=result.f,
+        return OptimizationResult(optimal_value=result.f,
                               optimal_parameters=result.x,
                               num_evaluations=result.nf)

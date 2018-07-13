@@ -16,10 +16,10 @@ import numpy
 
 import openfermion
 
-from openfermioncirq.contrib.rbfopt import RBFOpt
-from openfermioncirq.optimization import BlackBox, OptimizeTrialResult
+from openfermioncirq.contrib import RBFOpt
+from openfermioncirq.optimization import BlackBox, OptimizationTrialResult
 from openfermioncirq import (HamiltonianVariationalStudy,
-                             OptimizeParams,
+                             OptimizationParams,
                              SwapNetworkTrotterAnsatz)
 
 
@@ -76,18 +76,16 @@ def test_rbfopt_optimize_study():
     ansatz = SwapNetworkTrotterAnsatz(hamiltonian)
     study = HamiltonianVariationalStudy('study', ansatz, hamiltonian)
     algorithm = RBFOpt(
-            options={'max_evaluations': 50,
-                     'max_noisy_evaluations': 25},
+            options={'max_evaluations': 10,
+                     'max_noisy_evaluations': 5},
             cost_of_evaluate_noisy=1e6,
             confidence_of_evaluate_noisy=.99)
 
     study.optimize(
-            'run',
-            OptimizeParams(
+            OptimizationParams(
                 algorithm,
-                cost_of_evaluate=1e4,
-                reevaluate_final_params=True))
+                cost_of_evaluate=1e4),
+            reevaluate_final_params=True)
 
-    result, params = study.results['run']
-    assert isinstance(result, OptimizeTrialResult)
-    assert isinstance(params, OptimizeParams)
+    result = study.results[0]
+    assert isinstance(result, OptimizationTrialResult)

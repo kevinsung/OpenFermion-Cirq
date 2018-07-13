@@ -18,7 +18,7 @@ import rbfopt
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
-        OptimizeResult)
+        OptimizationResult)
 
 
 class RBFOptBlackBox(rbfopt.RbfoptBlackBox):
@@ -72,7 +72,7 @@ class RBFOpt(OptimizationAlgorithm):
                  black_box: BlackBox,
                  initial_guess: Optional[numpy.ndarray]=None,
                  initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> OptimizeResult:
+                 ) -> OptimizationResult:
         if black_box.bounds is None:
             raise ValueError(
                     'The chosen algorithm requires bounds on the function '
@@ -93,7 +93,7 @@ class RBFOpt(OptimizationAlgorithm):
             init_node_pos=initial_guess_array,
             init_node_val=init_node_val)
         algorithm.optimize()
-        return OptimizeResult(
+        return OptimizationResult(
                 optimal_value=algorithm.fbest,
                 optimal_parameters=algorithm.all_node_pos[
                     algorithm.fbest_index],
