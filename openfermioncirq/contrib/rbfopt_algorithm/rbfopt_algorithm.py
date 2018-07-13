@@ -12,6 +12,8 @@
 
 from typing import Dict, Optional
 
+import os
+
 import numpy
 import rbfopt
 
@@ -71,7 +73,8 @@ class RBFOpt(OptimizationAlgorithm):
     def optimize(self,
                  black_box: BlackBox,
                  initial_guess: Optional[numpy.ndarray]=None,
-                 initial_guess_array: Optional[numpy.ndarray]=None
+                 initial_guess_array: Optional[numpy.ndarray]=None,
+                 output_stream_path=os.devnull
                  ) -> OptimizationResult:
         if black_box.bounds is None:
             raise ValueError(
@@ -87,12 +90,15 @@ class RBFOpt(OptimizationAlgorithm):
                      for i in range(len(initial_guess_array))])
         else:
             init_node_val = None
+
         algorithm = rbfopt.RbfoptAlgorithm(
             rbfopt_settings,
             rbfopt_black_box,
             init_node_pos=initial_guess_array,
             init_node_val=init_node_val)
-        algorithm.optimize()
+        with open(output_stream_path, 'w') as output_stream:
+            algorithm.set_output_stream(output_stream)
+            algorithm.optimize()
         return OptimizationResult(
                 optimal_value=algorithm.fbest,
                 optimal_parameters=algorithm.all_node_pos[
