@@ -22,6 +22,7 @@
 #    [pull-request-number] \
 #    [access-token] \
 #    [--only=pylint|typecheck|pytest|incremental-coverage] \
+#    [--python_path=PATH_TO_PYTHON_BINARY] \
 #    [--verbose]
 #
 # If no pull request number is given, the script will check files in its

@@ -59,9 +59,19 @@ def topologically_sorted_checks_with_deps(checks: Iterable[check.Check]
 def parse_args():
     args = sys.argv
     verbose = '--verbose' in args
+
+    python_path = [e.split('--python_path=')[1]
+                   for e in args
+                   if e.startswith('--python_path=')]
+    if python_path:
+        python_path = python_path[0]
+    else:
+        python_path = '/usr/bin/python3.5'
+
     only = [e.split('--only=')[1]
             for e in args
             if e.startswith('--only=')]
+
     checks = all_checks.ALL_CHECKS
     if only:
         checks = [e for e in checks if e.command_line_switch() in only]
@@ -77,11 +87,12 @@ def parse_args():
     access_token = None if len(positionals) < 3 else int(positionals[2])
     if access_token is None:
         access_token = os.getenv('CIRQ_GITHUB_ACCESS_TOKEN')
-    return pull_request_number, access_token, verbose, checks
+    return pull_request_number, access_token, verbose, checks, python_path
 
 
 def main():
-    pull_request_number, access_token, verbose, checks = parse_args()
+    pull_request_number, access_token, verbose, checks, python_path = (
+            parse_args())
     if pull_request_number is None:
         print(shell_tools.highlight(
             'No pull request number given. Using local files.',
@@ -102,6 +113,7 @@ def main():
             pull_request_number=pull_request_number,
             commit_ids_known_callback=lambda e:
                 report_pending(e, checks, currently_pending),
+            python_path=python_path,
             verbose=verbose)
 
         env2 = None
