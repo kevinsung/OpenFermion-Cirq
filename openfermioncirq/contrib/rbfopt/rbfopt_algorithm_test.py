@@ -17,10 +17,13 @@ import numpy
 import openfermion
 
 from openfermioncirq.contrib import RBFOpt
-from openfermioncirq.optimization import BlackBox, OptimizationTrialResult
-from openfermioncirq import (HamiltonianVariationalStudy,
-                             OptimizationParams,
-                             SwapNetworkTrotterAnsatz)
+from openfermioncirq.optimization import (
+        BlackBox,
+        OptimizationParams,
+        OptimizationTrialResult)
+from openfermioncirq import (
+        HamiltonianVariationalStudy,
+        SwapNetworkTrotterAnsatz)
 
 
 class ExampleBlackBox(BlackBox):

@@ -10,4 +10,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermioncirq.contrib.rbfopt_algorithm.rbfopt_algorithm import RBFOpt
+from openfermioncirq.contrib.rbfopt.rbfopt_algorithm import RBFOpt
