@@ -22,7 +22,8 @@ from openfermioncirq.optimization import (
         OptimizationParams,
         OptimizationTrialResult)
 from openfermioncirq import (
-        HamiltonianVariationalStudy,
+        HamiltonianObjective,
+        VariationalStudy,
         SwapNetworkTrotterAnsatz)
 
 
@@ -36,16 +37,16 @@ class ExampleBlackBox(BlackBox):
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         return [(-2.0, 2.0), (-2.0, 2.0)]
 
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
         return numpy.sum(x**2)
 
 
 class ExampleBlackBoxNoisy(ExampleBlackBox):
 
-    def evaluate_with_cost(self,
-                           x: numpy.ndarray,
-                           cost: float) -> float:
+    def _evaluate_with_cost(self,
+                            x: numpy.ndarray,
+                            cost: float) -> float:
         return numpy.sum(x**2) + 1 / cost
 
     def noise_bounds(self,
@@ -77,7 +78,8 @@ def test_rbfopt_optimize_study():
     hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
 
     ansatz = SwapNetworkTrotterAnsatz(hamiltonian)
-    study = HamiltonianVariationalStudy('study', ansatz, hamiltonian)
+    objective = HamiltonianObjective(hamiltonian)
+    study = VariationalStudy('study', ansatz, objective)
     algorithm = RBFOpt(
             options={'max_evaluations': 10,
                      'max_noisy_evaluations': 5},
