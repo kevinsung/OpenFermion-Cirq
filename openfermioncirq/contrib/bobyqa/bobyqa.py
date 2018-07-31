@@ -33,7 +33,7 @@ class Bobyqa(OptimizationAlgorithm):
             maxs = [bound[1] for bound in black_box.bounds]
             bounds = (numpy.array(mins), numpy.array(maxs))
         else:
-            bounds = None
+            bounds = None  # type: ignore
         result = pybobyqa.solve(
                 black_box.evaluate,
                 initial_guess,
