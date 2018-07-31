@@ -42,7 +42,7 @@ class ExampleBlackBox(BlackBox):
         return numpy.sum(x**2)
 
 
-def test_rbfopt_optimize():
+def test_dycors_optimize():
     black_box = ExampleBlackBox()
     algorithm = Dycors(options={'maxeval': 5})
     result = algorithm.optimize(black_box)
@@ -50,7 +50,7 @@ def test_rbfopt_optimize():
     assert isinstance(result.optimal_value, float)
 
 
-def test_rbfopt_optimize_study():
+def test_dycors_optimize_study():
     grid = openfermion.Grid(2, 2, 1.0)
     jellium = openfermion.jellium_model(grid, spinless=True, plane_wave=False)
     hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
