@@ -1,3 +1,5 @@
+-r openfermioncirq/contrib/contrib-requirements.txt
+
 cirq>=0.3
 mypy~=0.610.0
 nbformat
