@@ -29,7 +29,7 @@ class Bobyqa(OptimizationAlgorithm):
                  initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:
 
-        bounds = None  # type: Optional[Tuple[numpy.ndarray, numpy.ndarray]]
+        bounds = None
 
         if black_box.bounds is not None:
             mins = [bound[0] for bound in black_box.bounds]
