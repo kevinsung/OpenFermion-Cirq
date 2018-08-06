@@ -12,7 +12,7 @@
 
 """Subclasses of abstract classes for use in tests."""
 
-from typing import Iterable, Optional, Sequence, Union, cast
+from typing import Iterable, Optional, Sequence, Tuple, Union, cast
 
 import numpy
 
@@ -78,6 +78,10 @@ class ExampleBlackBox(BlackBox):
     def dimension(self) -> int:
         return 2
 
+    @property
+    def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
+        return [(-10.0, 10.0), (-10.0, 10.0)]
+
     def _evaluate(self,
                   x: numpy.ndarray) -> float:
         return numpy.sum(x**2)
@@ -113,6 +117,9 @@ class ExampleAnsatz(VariationalAnsatz):
     def params(self) -> Iterable[cirq.Symbol]:
         for i in range(2):
             yield cirq.Symbol('theta{}'.format(i))
+
+    def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
+        return [(-1.0, 1.0), (-1.0, 1.0)]
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
