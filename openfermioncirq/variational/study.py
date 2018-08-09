@@ -113,8 +113,9 @@ class VariationalStudy:
 
         Constructs a BlackBox that uses the study to perform function
         evaluations, then uses the given algorithm to optimize the BlackBox.
-        The result is saved into a list in the `results` dictionary of the study
-        under the key specified by `identifier`.
+        The result is saved as an OptimizationTrialResult in the
+        `trial_results` dictionary of the study under the key specified by
+        `identifier`.
 
         The `cost_of_evaluate` argument affects how the BlackBox is constructed.
         If it is None, then the `evaluate` method of the BlackBox will call the
@@ -154,7 +155,7 @@ class VariationalStudy:
                 `multiprocessing.cpu_count()`.
 
         Side effects:
-            Saves the returned OptimizationTrialResult into the `results`
+            Saves the returned OptimizationTrialResult into the `trial_results`
             dictionary
         """
         return self.optimize_sweep([optimization_params],
@@ -252,7 +253,7 @@ class VariationalStudy:
                                                    optimization_params)
             trial_results.append(trial_result)
 
-            # Save the result into the results dictionary
+            # Save the result into the trial_results dictionary
             self.trial_results[identifier] = trial_result
 
         return trial_results
@@ -270,11 +271,11 @@ class VariationalStudy:
                       ) -> None:
         """Extend a result by repeating the run with the same parameters.
 
-        The provided identifier is used as a key to the `results` dictionary
-        to retrieve an OptimizationTrialResult. The OptimizationParams
-        associated with this trial result are used to perform additional
-        repetitions of the optimization run. The results of these repetitions
-        are appended to the stored OptimizationTrialResult.
+        The provided identifier is used as a key to the `trial_results`
+        dictionary to retrieve an OptimizationTrialResult.
+        The OptimizationParams associated with this trial result are used to
+        perform additional repetitions of the optimization run. The results
+        of these repetitions are appended to the stored OptimizationTrialResult.
 
         If there is no OptimizationTrialResult associated with the given
         identifier, an error is raised.
