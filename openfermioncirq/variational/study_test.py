@@ -113,7 +113,7 @@ def test_variational_study_optimize_and_extend_and_summary():
         study.extend_result('run100')
 
     # Check that getting a summary works
-    assert isinstance(str(study), str)
+    assert str(study).startswith('This study contains')
 
 
 def test_variational_study_run_too_few_seeds_raises_error():
