@@ -382,8 +382,7 @@ class VariationalStudy:
 
         return result_list
 
-    @property
-    def summary(self) -> str:
+    def __str__(self) -> str:
         header = []   # type: List[str]
         details = []  # type: List[str]
         optimal_value = numpy.inf
