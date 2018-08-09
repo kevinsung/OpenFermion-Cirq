@@ -30,7 +30,7 @@ class VariationalObjective(metaclass=abc.ABCMeta):
     and cost model for the value. This is useful for modeling situations
     in which the value can be determined only approximately and there is a
     tradeoff between the accuracy of the evaluation and the cost of the
-    evaluation. 
+    evaluation.
     """
 
     @abc.abstractmethod

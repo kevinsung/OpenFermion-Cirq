@@ -63,8 +63,9 @@ class VariationalStudy:
         objective: The objective function of interest.
         target: An optional target value one wants to achieve during
             optimization.
-        trial_results: A dictionary of OptimizationTrialResults from optimization
-            runs of the study. Key is the identifier used to label the run.
+        trial_results: A dictionary of OptimizationTrialResults from
+            optimization runs of the study. Key is the identifier used to
+            label the run.
         num_params: The number of parameters in the circuit.
     """
 
