@@ -14,12 +14,22 @@
 
 from openfermioncirq.trotter.algorithms.linear_swap_network import (
     LINEAR_SWAP_NETWORK,
-    LinearSwapNetworkTrotterAlgorithm)
+    LinearSwapNetworkTrotterAlgorithm,
+    ControlledAsymmetricLinearSwapNetworkTrotterStep,
+    ControlledSymmetricLinearSwapNetworkTrotterStep,
+    SymmetricLinearSwapNetworkTrotterStep,
+    AsymmetricLinearSwapNetworkTrotterStep)
 
 from openfermioncirq.trotter.algorithms.low_rank import (
     LOW_RANK,
-    LowRankTrotterAlgorithm)
+    LowRankTrotterAlgorithm,
+    ControlledAsymmetricLowRankTrotterStep,
+    AsymmetricLowRankTrotterStep)
 
 from openfermioncirq.trotter.algorithms.split_operator import (
     SPLIT_OPERATOR,
-    SplitOperatorTrotterAlgorithm)
+    SplitOperatorTrotterAlgorithm,
+    ControlledAsymmetricSplitOperatorTrotterStep,
+    ControlledSymmetricSplitOperatorTrotterStep,
+    SymmetricSplitOperatorTrotterStep,
+    AsymmetricSplitOperatorTrotterStep)

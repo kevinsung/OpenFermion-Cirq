@@ -23,6 +23,8 @@ import cirq
 import openfermion
 
 from openfermioncirq import XXYYGate, YXXYGate, swap_network
+from openfermioncirq.trotter.algorithms import (
+        SymmetricLinearSwapNetworkTrotterStep)
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 
 
