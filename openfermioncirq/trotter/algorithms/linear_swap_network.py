@@ -63,6 +63,17 @@ LINEAR_SWAP_NETWORK = LinearSwapNetworkTrotterAlgorithm()
 
 class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
+    def __init__(self, parameterized=False, angle_suffix=''):
+        self.angles = {angle_name: self.value_of
+
+    def angle_names(self):
+        for p in range(len(self.qubits)):
+            yield 'U{}'.format(p)
+        for p, q in itertools.combinations(range(len(self.qubits)), 2):
+            yield 'T{}_{}'.format(p, q)
+            yield 'W{}_{}'.format(p, q)
+            yield 'V{}_{}'.format(p, q)
+
     def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],

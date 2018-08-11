@@ -178,6 +178,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
         self.include_all_cz = include_all_cz
         self.include_all_z = include_all_z
 
+        self.trotter_step = SymmetricLinearSwapNetworkTrotterStep(
+                parameterized=True)
+
         if adiabatic_evolution_time is None:
             adiabatic_evolution_time = (
                     numpy.sum(numpy.abs(hamiltonian.two_body)))
@@ -221,46 +224,46 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
 
     def trotter_step(qubits, iteration):
 
-            suffix = '-{}'.format(i) if self.iterations > 1 else ''
+        suffix = '-{}'.format(i) if self.iterations > 1 else ''
 
-            # Apply one- and two-body interactions with a swap network that
-            # reverses the order of the modes
-            def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-                if 'T{}_{}'.format(p, q) + suffix in self.params:
-                    yield XXYYGate(half_turns=self.params[
-                              'T{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'W{}_{}'.format(p, q) + suffix in self.params:
-                    yield YXXYGate(half_turns=self.params[
-                              'W{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'V{}_{}'.format(p, q) + suffix in self.params:
-                    yield cirq.Rot11Gate(half_turns=self.params[
-                              'V{}_{}'.format(p, q) + suffix]).on(a, b)
-            yield swap_network(
-                    qubits, one_and_two_body_interaction, fermionic=True)
-            qubits = qubits[::-1]
+        # Apply one- and two-body interactions with a swap network that
+        # reverses the order of the modes
+        def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
+            if 'T{}_{}'.format(p, q) + suffix in self.params:
+                yield XXYYGate(half_turns=self.params[
+                          'T{}_{}'.format(p, q) + suffix]).on(a, b)
+            if 'W{}_{}'.format(p, q) + suffix in self.params:
+                yield YXXYGate(half_turns=self.params[
+                          'W{}_{}'.format(p, q) + suffix]).on(a, b)
+            if 'V{}_{}'.format(p, q) + suffix in self.params:
+                yield cirq.Rot11Gate(half_turns=self.params[
+                          'V{}_{}'.format(p, q) + suffix]).on(a, b)
+        yield swap_network(
+                qubits, one_and_two_body_interaction, fermionic=True)
+        qubits = qubits[::-1]
 
-            # Apply one-body potential
-            yield (cirq.RotZGate(half_turns=
-                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                   for p in range(len(qubits))
-                   if 'U{}'.format(p) + suffix in self.params)
+        # Apply one-body potential
+        yield (cirq.RotZGate(half_turns=
+                   self.params['U{}'.format(p) + suffix]).on(qubits[p])
+               for p in range(len(qubits))
+               if 'U{}'.format(p) + suffix in self.params)
 
-            # Apply one- and two-body interactions again. This time, reorder
-            # them so that the entire iteration is symmetric
-            def one_and_two_body_interaction_reversed_order(p, q, a, b
-                    ) -> cirq.OP_TREE:
-                if 'V{}_{}'.format(p, q) + suffix in self.params:
-                    yield cirq.Rot11Gate(half_turns=self.params[
-                              'V{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'W{}_{}'.format(p, q) + suffix in self.params:
-                    yield YXXYGate(half_turns=self.params[
-                              'W{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'T{}_{}'.format(p, q) + suffix in self.params:
-                    yield XXYYGate(half_turns=self.params[
-                              'T{}_{}'.format(p, q) + suffix]).on(a, b)
-            yield swap_network(
-                    qubits, one_and_two_body_interaction_reversed_order,
-                    fermionic=True, offset=True)
+        # Apply one- and two-body interactions again. This time, reorder
+        # them so that the entire iteration is symmetric
+        def one_and_two_body_interaction_reversed_order(p, q, a, b
+                ) -> cirq.OP_TREE:
+            if 'V{}_{}'.format(p, q) + suffix in self.params:
+                yield cirq.Rot11Gate(half_turns=self.params[
+                          'V{}_{}'.format(p, q) + suffix]).on(a, b)
+            if 'W{}_{}'.format(p, q) + suffix in self.params:
+                yield YXXYGate(half_turns=self.params[
+                          'W{}_{}'.format(p, q) + suffix]).on(a, b)
+            if 'T{}_{}'.format(p, q) + suffix in self.params:
+                yield XXYYGate(half_turns=self.params[
+                          'T{}_{}'.format(p, q) + suffix]).on(a, b)
+        yield swap_network(
+                qubits, one_and_two_body_interaction_reversed_order,
+                fermionic=True, offset=True)
 
 
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
