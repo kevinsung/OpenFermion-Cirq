@@ -219,11 +219,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
-        """Produce the operations of the ansatz circuit."""
-        # TODO implement asymmetric ansatzes?
-
-        for i in range(self.iterations):
+    def trotter_step(qubits, iteration):
 
             suffix = '-{}'.format(i) if self.iterations > 1 else ''
 
@@ -265,7 +261,17 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
             yield swap_network(
                     qubits, one_and_two_body_interaction_reversed_order,
                     fermionic=True, offset=True)
-            qubits = qubits[::-1]
+
+
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+        """Produce the operations of the ansatz circuit."""
+        # TODO implement asymmetric ansatzes?
+
+        for i in range(self.iterations):
+
+            yield self.trotter_step.trotter_step(qubits, iteration=i)
+            qubits = self.trotter_step.step_qubit_permutation(qubits)
+
 
     def default_initial_params(self) -> numpy.ndarray:
         """Approximate evolution by H(t) = T + (t/A)V.
