@@ -61,10 +61,10 @@ class LinearSwapNetworkTrotterAlgorithm(TrotterAlgorithm):
 LINEAR_SWAP_NETWORK = LinearSwapNetworkTrotterAlgorithm()
 
 
-class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
+class SymmetricLinearSwapNetworkTrotterStep(
+        TrotterStep, cirq.ParameterizableEffect):
 
-    def __init__(self, parameterized=False, angle_suffix=''):
-        self.angles = {angle_name: self.value_of
+    def __init__(self, hamiltonian, resolver):
 
     def angle_names(self):
         for p in range(len(self.qubits)):
