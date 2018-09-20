@@ -71,7 +71,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
 
     # Compute the orbital energies and circuit
     orbital_energies, constant = quad_ham.orbital_energies()
-    transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
+    _, transformation_matrix, _ = quad_ham.diagonalizing_bogoliubov_transform()
     circuit = cirq.Circuit.from_ops(
             bogoliubov_transform(qubits, transformation_matrix))
 
@@ -148,7 +148,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
             real=real,
             conserves_particle_number=particle_conserving,
             seed=46533)
-    transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
+    _, transformation_matrix, _ = quad_ham.diagonalizing_bogoliubov_transform()
 
     qubits = cirq.LineQubit.range(n_qubits)
 
