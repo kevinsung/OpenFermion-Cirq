@@ -47,7 +47,7 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
             pseudoparticle orbitals to occupy in the Gaussian state.
             If two lists are given, then the first list specifies spin-up
             orbitals and the second list specifies spin-down orbitals,
-            and the circuit requires that modes be reordered so that
+            and the modes are assumed to be ordered so that
             spin-up modes come before spin-down modes.
             Two lists should be given only if the Hamiltonian contains a
             spin degree of freedom and modes with different spin do not
