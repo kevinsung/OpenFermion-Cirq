@@ -86,8 +86,16 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
             n_spatial_orbitals,
             conserves_particle_number,
             real=True,
-            expand_spin=True)
-    quad_ham.constant = 0.0
+            expand_spin=True,
+            seed=639)
+
+    # Reorder the Hamiltonian and get sparse matrix
+    quad_ham = openfermion.get_quadratic_hamiltonian(
+            openfermion.reorder(
+                openfermion.get_fermion_operator(quad_ham),
+                openfermion.up_then_down)
+    )
+    quad_ham_sparse = get_sparse_operator(quad_ham)
 
     # Compute the energy of the desired state
     energy = 0.0
@@ -98,6 +106,7 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
         )
         energy += sum(orbital_energies[i]
                       for i in occupied_orbitals[spin_sector])
+    energy += quad_ham.constant
 
     # Get the state using a circuit simulation
     circuit = cirq.Circuit.from_ops(
@@ -105,14 +114,6 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
     state = circuit.apply_unitary_effect_to_state(initial_state)
-
-    # Reorder the Hamiltonian and get sparse matrix
-    reordered_quad_ham = openfermion.get_quadratic_hamiltonian(
-            openfermion.reorder(
-                openfermion.get_fermion_operator(quad_ham),
-                openfermion.up_then_down)
-    )
-    quad_ham_sparse = get_sparse_operator(reordered_quad_ham)
 
     # Check that the result is an eigenstate with the correct eigenvalue
     numpy.testing.assert_allclose(

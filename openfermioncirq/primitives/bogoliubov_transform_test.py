@@ -76,7 +76,14 @@ def test_spin_symmetric_bogoliubov_transform(
             real=True,
             expand_spin=True,
             seed=28166)
-    quad_ham.constant = 0.0
+
+    # Reorder the Hamiltonian and get sparse matrix
+    quad_ham = openfermion.get_quadratic_hamiltonian(
+            openfermion.reorder(
+                openfermion.get_fermion_operator(quad_ham),
+                openfermion.up_then_down)
+    )
+    quad_ham_sparse = get_sparse_operator(quad_ham)
 
     # Compute the orbital energies and circuit
     up_orbital_energies, up_transformation_matrix, _ = (
@@ -92,7 +99,7 @@ def test_spin_symmetric_bogoliubov_transform(
     up_orbitals = list(range(2))
     down_orbitals = [0, 2, 3]
     energy = sum(up_orbital_energies[up_orbitals]) + sum(
-            down_orbital_energies[down_orbitals])
+            down_orbital_energies[down_orbitals]) + quad_ham.constant
 
     # Construct initial state
     initial_state = (
@@ -104,14 +111,6 @@ def test_spin_symmetric_bogoliubov_transform(
     # Apply the circuit
     circuit = up_circuit + down_circuit
     state = circuit.apply_unitary_effect_to_state(initial_state)
-
-    # Reorder the Hamiltonian and get sparse matrix
-    reordered_quad_ham = openfermion.get_quadratic_hamiltonian(
-            openfermion.reorder(
-                openfermion.get_fermion_operator(quad_ham),
-                openfermion.up_then_down)
-    )
-    quad_ham_sparse = get_sparse_operator(reordered_quad_ham)
 
     # Check that the result is an eigenstate with the correct eigenvalue
     numpy.testing.assert_allclose(
