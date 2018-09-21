@@ -17,7 +17,6 @@ import scipy
 import cirq
 import openfermion
 
-from cirq.testing import EqualsTester
 from openfermioncirq.gates import DoubleExcitation, DoubleExcitationGate
 
 
@@ -33,7 +32,7 @@ def test_double_excitation_init_with_multiple_args_fails():
 
 
 def test_double_excitation_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(DoubleExcitationGate(half_turns=1.5),
                           DoubleExcitationGate(half_turns=-0.5),

@@ -67,13 +67,15 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
             example, the list [2, 3] represents qubits 2 and 3 being set to one.
             Default is 0, the all zeros state.
     """
-    n_qubits = len(qubits)
     if not occupied_orbitals or isinstance(occupied_orbitals[0], int):
         # Generic
+        occupied_orbitals = cast(Sequence[int], occupied_orbitals)
         yield _generic_gaussian_circuit(
                 qubits, quadratic_hamiltonian, occupied_orbitals, initial_state)
     else:
         # Spin symmetry
+        occupied_orbitals = cast(Tuple[Sequence[int], Sequence[int]],
+                                 occupied_orbitals)
         yield _spin_symmetric_gaussian_circuit(
                 qubits, quadratic_hamiltonian, occupied_orbitals, initial_state)
 
@@ -105,7 +107,7 @@ def _generic_gaussian_circuit(
 def _spin_symmetric_gaussian_circuit(
         qubits: Sequence[cirq.QubitId],
         quadratic_hamiltonian: QuadraticHamiltonian,
-        occupied_orbitals: Optional[Tuple[Sequence[int], Sequence[int]]],
+        occupied_orbitals: Tuple[Sequence[int], Sequence[int]],
         initial_state: Union[int, Sequence[int]]) -> cirq.OP_TREE:
 
     n_qubits = len(qubits)

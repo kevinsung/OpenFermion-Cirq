@@ -68,7 +68,7 @@ def test_prepare_gaussian_state(n_qubits,
         'n_spatial_orbitals, conserves_particle_number, occupied_orbitals, '
         'initial_state',
         [(4, True, [range(1), range(1)], 0b00100100),
-         (5, True, [range(2), range(1)], 0),
+         (5, True, [range(2), range(1)], range(3)),
          (5, True, [[0, 2], [1, 3]], 0)])
 def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
                                                    conserves_particle_number,

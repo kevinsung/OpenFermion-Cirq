@@ -18,7 +18,7 @@ import pytest
 import cirq
 from cirq import LineQubit
 import openfermion
-from openfermion import get_sparse_operator, down_index, up_index
+from openfermion import get_sparse_operator
 from openfermion.utils import (
         random_quadratic_hamiltonian, random_unitary_matrix)
 
