@@ -15,6 +15,7 @@ import pytest
 
 import cirq
 from cirq import LineQubit
+import openfermion
 from openfermion import get_sparse_operator
 from openfermion.utils._testing_utils import random_quadratic_hamiltonian
 
@@ -87,7 +88,6 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
             real=True,
             expand_spin=True)
     quad_ham.constant = 0.0
-    quad_ham_sparse = get_sparse_operator(quad_ham)
 
     # Compute the energy of the desired state
     energy = 0.0
@@ -106,13 +106,13 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
                 initial_state=initial_state))
     state = circuit.apply_unitary_effect_to_state(initial_state)
 
-    import openfermion
-    numpy.testing.assert_allclose(
-            openfermion.variance(quad_ham_sparse, state),
-            0.0)
-    numpy.testing.assert_allclose(
-            openfermion.expectation(quad_ham_sparse, state),
-            energy)
+    # Reorder the Hamiltonian and get sparse matrix
+    reordered_quad_ham = openfermion.get_quadratic_hamiltonian(
+            openfermion.reorder(
+                openfermion.get_fermion_operator(quad_ham),
+                openfermion.up_then_down)
+    )
+    quad_ham_sparse = get_sparse_operator(reordered_quad_ham)
 
     # Check that the result is an eigenstate with the correct eigenvalue
     numpy.testing.assert_allclose(

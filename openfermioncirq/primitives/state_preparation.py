@@ -20,9 +20,7 @@ import cirq
 from openfermion import (
         QuadraticHamiltonian,
         gaussian_state_preparation_circuit,
-        slater_determinant_preparation_circuit,
-        down_index,
-        up_index)
+        slater_determinant_preparation_circuit)
 
 from openfermioncirq import YXXY
 
@@ -48,7 +46,9 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
         occupied_orbitals: Integers representing the indices of the
             pseudoparticle orbitals to occupy in the Gaussian state.
             If two lists are given, then the first list specifies spin-up
-            orbitals and the second list specifies spin-down orbitals.
+            orbitals and the second list specifies spin-down orbitals,
+            and the circuit requires that modes be reordered so that
+            spin-up modes come before spin-down modes.
             Two lists should be given only if the Hamiltonian contains a
             spin degree of freedom and modes with different spin do not
             interact.
@@ -124,7 +124,8 @@ def _spin_symmetric_gaussian_circuit(
                     spin_sector=spin_sector)
         )
 
-        index_map = (up_index, down_index)[spin_sector]
+        def index_map(i):
+            return i + spin_sector*(n_qubits // 2)
         spin_indices = [index_map(i) for i in range(n_qubits // 2)]
         spin_qubits = [qubits[i] for i in spin_indices]
 

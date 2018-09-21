@@ -17,7 +17,8 @@ import pytest
 
 import cirq
 from cirq import LineQubit
-from openfermion import get_sparse_operator
+import openfermion
+from openfermion import get_sparse_operator, down_index, up_index
 from openfermion.utils import (
         random_quadratic_hamiltonian, random_unitary_matrix)
 
@@ -54,6 +55,67 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
 
     cirq.testing.assert_allclose_up_to_global_phase(
             state, correct_state, atol=atol)
+
+
+@pytest.mark.parametrize(
+        'n_spatial_orbitals, conserves_particle_number',
+        [(4, True), (5, True)])
+def test_spin_symmetric_bogoliubov_transform(
+        n_spatial_orbitals,
+        conserves_particle_number,
+        atol=5e-5):
+    n_qubits = 2*n_spatial_orbitals
+    qubits = LineQubit.range(n_qubits)
+    up_qubits = qubits[:n_spatial_orbitals]
+    down_qubits = qubits[n_spatial_orbitals:]
+
+    # Initialize a random quadratic Hamiltonian
+    quad_ham = random_quadratic_hamiltonian(
+            n_spatial_orbitals,
+            conserves_particle_number,
+            real=True,
+            expand_spin=True,
+            seed=28166)
+    quad_ham.constant = 0.0
+
+    # Compute the orbital energies and circuit
+    up_orbital_energies, up_transformation_matrix, _ = (
+            quad_ham.diagonalizing_bogoliubov_transform(spin_sector=0))
+    up_circuit = cirq.Circuit.from_ops(
+            bogoliubov_transform(up_qubits, up_transformation_matrix))
+    down_orbital_energies, down_transformation_matrix, _ = (
+            quad_ham.diagonalizing_bogoliubov_transform(spin_sector=1))
+    down_circuit = cirq.Circuit.from_ops(
+            bogoliubov_transform(down_qubits, down_transformation_matrix))
+
+    # Pick some orbitals to occupy
+    up_orbitals = list(range(2))
+    down_orbitals = [0, 2, 3]
+    energy = sum(up_orbital_energies[up_orbitals]) + sum(
+            down_orbital_energies[down_orbitals])
+
+    # Construct initial state
+    initial_state = (
+            sum(2**(n_qubits - 1 - int(i)) for i in up_orbitals)
+            + sum(2**(n_qubits - 1 - int(i+n_spatial_orbitals))
+                  for i in down_orbitals)
+    )
+
+    # Apply the circuit
+    circuit = up_circuit + down_circuit
+    state = circuit.apply_unitary_effect_to_state(initial_state)
+
+    # Reorder the Hamiltonian and get sparse matrix
+    reordered_quad_ham = openfermion.get_quadratic_hamiltonian(
+            openfermion.reorder(
+                openfermion.get_fermion_operator(quad_ham),
+                openfermion.up_then_down)
+    )
+    quad_ham_sparse = get_sparse_operator(reordered_quad_ham)
+
+    # Check that the result is an eigenstate with the correct eigenvalue
+    numpy.testing.assert_allclose(
+            quad_ham_sparse.dot(state), energy * state, atol=atol)
 
 
 @pytest.mark.parametrize(
