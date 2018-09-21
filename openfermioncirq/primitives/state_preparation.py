@@ -68,7 +68,7 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
             Default is 0, the all zeros state.
     """
     n_qubits = len(qubits)
-    if occupied_orbitals is None or isinstance(occupied_orbitals[0], int):
+    if not occupied_orbitals or isinstance(occupied_orbitals[0], int):
         # Generic
         yield _generic_gaussian_circuit(
                 qubits, quadratic_hamiltonian, occupied_orbitals, initial_state)
