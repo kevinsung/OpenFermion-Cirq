@@ -49,7 +49,8 @@ def test_prepare_gaussian_state(n_qubits,
     if occupied_orbitals is None:
         energy = quad_ham.ground_energy()
     else:
-        orbital_energies, constant = quad_ham.orbital_energies()
+        orbital_energies, _, constant = (
+                quad_ham.diagonalizing_bogoliubov_transform())
         energy = sum(orbital_energies[i] for i in occupied_orbitals) + constant
 
     # Get the state using a circuit simulation
@@ -68,7 +69,7 @@ def test_prepare_gaussian_state(n_qubits,
         'n_spatial_orbitals, conserves_particle_number, occupied_orbitals, '
         'initial_state',
         [(4, True, [range(1), range(1)], 0b00100100),
-         (5, True, [range(2), range(1)], range(3)),
+         (5, True, [range(2), range(1)], list(range(3))),
          (5, True, [[0, 2], [1, 3]], 0)])
 def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
                                                    conserves_particle_number,
@@ -78,8 +79,6 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
 
     n_qubits = 2 * n_spatial_orbitals
     qubits = LineQubit.range(n_qubits)
-    if isinstance(initial_state, list):
-        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(
@@ -113,6 +112,9 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
             prepare_gaussian_state(
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
+
+    if isinstance(initial_state, list):
+        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
     state = circuit.apply_unitary_effect_to_state(initial_state)
 
     # Check that the result is an eigenstate with the correct eigenvalue

@@ -66,8 +66,6 @@ def test_spin_symmetric_bogoliubov_transform(
         atol=5e-5):
     n_qubits = 2*n_spatial_orbitals
     qubits = LineQubit.range(n_qubits)
-    up_qubits = qubits[:n_spatial_orbitals]
-    down_qubits = qubits[n_spatial_orbitals:]
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(
@@ -85,15 +83,13 @@ def test_spin_symmetric_bogoliubov_transform(
     )
     quad_ham_sparse = get_sparse_operator(quad_ham)
 
-    # Compute the orbital energies and circuit
-    up_orbital_energies, up_transformation_matrix, _ = (
+    # Compute the orbital energies and transformation_matrix
+    up_orbital_energies, _, _ = (
             quad_ham.diagonalizing_bogoliubov_transform(spin_sector=0))
-    up_circuit = cirq.Circuit.from_ops(
-            bogoliubov_transform(up_qubits, up_transformation_matrix))
-    down_orbital_energies, down_transformation_matrix, _ = (
+    down_orbital_energies, _, _ = (
             quad_ham.diagonalizing_bogoliubov_transform(spin_sector=1))
-    down_circuit = cirq.Circuit.from_ops(
-            bogoliubov_transform(down_qubits, down_transformation_matrix))
+    _, transformation_matrix, _ = (
+            quad_ham.diagonalizing_bogoliubov_transform())
 
     # Pick some orbitals to occupy
     up_orbitals = list(range(2))
@@ -109,7 +105,9 @@ def test_spin_symmetric_bogoliubov_transform(
     )
 
     # Apply the circuit
-    circuit = up_circuit + down_circuit
+    circuit = cirq.Circuit.from_ops(
+            bogoliubov_transform(
+                qubits, transformation_matrix, initial_state=initial_state))
     state = circuit.apply_unitary_effect_to_state(initial_state)
 
     # Check that the result is an eigenstate with the correct eigenvalue
