@@ -234,7 +234,7 @@ class VariationalStudy:
             identifiers = itertools.count(cast(int, start))  # type: ignore
 
 
-        if multiprocessing and repetitions == 1:
+        if use_multiprocessing and repetitions == 1:
             trial_results = self._get_trial_result_list(
                     param_sweep,
                     identifiers,
@@ -242,6 +242,8 @@ class VariationalStudy:
                     save_x_vals,
                     seeds,
                     num_processes)
+            for identifier, trial_result in zip(identifiers, trial_results):
+                self.trial_results[identifier] = trial_result
         else:
             trial_results = []
             for identifier, optimization_params in zip(
