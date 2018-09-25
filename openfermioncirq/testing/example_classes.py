@@ -59,6 +59,7 @@ class LazyAlgorithm(OptimizationAlgorithm):
                  initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:
         if initial_guess is None:
+            # coverage: ignore
             initial_guess = numpy.zeros(black_box.dimension)
         opt = black_box.evaluate(initial_guess)
         return OptimizationResult(
