@@ -34,6 +34,8 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
     def __init__(self,
                  x_dim: float,
                  y_dim: float,
+                 tunneling: float,
+                 coulomb: float,
                  periodic: bool=True,
                  iterations: int=1,
                  adiabatic_evolution_time: Optional[float]=None,
@@ -55,8 +57,16 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
         """
         self.x_dim = x_dim
         self.y_dim = y_dim
+        self.tunneling = tunneling
+        self.coulomb = coulomb
         self.periodic = periodic
         self.iterations = iterations
+
+        if adiabatic_evolution_time is None:
+            adiabatic_evolution_time = (
+                    numpy.sum(numpy.abs(hamiltonian.two_body)))
+        self.adiabatic_evolution_time = cast(float, adiabatic_evolution_time)
+
         super().__init__(qubits)
 
     def params(self) -> Iterable[cirq.Symbol]:
@@ -121,6 +131,48 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                     qubits, one_and_two_body_interaction_reversed_order,
                     fermionic=True, offset=True)
             qubits = qubits[::-1]
+
+    def default_initial_params(self) -> numpy.ndarray:
+        """Approximate evolution by H(t) = T + (t/A)V.
+
+        Sets the parameters so that the ansatz circuit consists of a sequence
+        of second-order Trotter steps approximating the dynamics of the
+        time-dependent Hamiltonian H(t) = T + (t/A)V, where T is the one-body
+        term and V is the two-body term of the Hamiltonian used to generate the
+        ansatz circuit, and t ranges from 0 to A, where A is equal to
+        `self.adibatic_evolution_time`. The number of Trotter steps
+        is equal to the number of iterations in the ansatz. This choice is
+        motivated by the idea of state preparation via adiabatic evolution.
+
+        The dynamics of H(t) are approximated as follows. First, the total
+        evolution time of A is split into segments of length A / r, where r
+        is the number of Trotter steps. Then, each Trotter step simulates H(t)
+        for a time length of A / r, where t is the midpoint of the
+        corresponding time segment. As an example, suppose A is 100 and the
+        ansatz has two iterations. Then the approximation is achieved with two
+        Trotter steps. The first Trotter step simulates H(25) for a time length
+        of 50, and the second Trotter step simulates H(75) for a time length
+        of 50.
+        """
+
+        total_time = self.adiabatic_evolution_time
+        step_time = total_time / self.iterations
+        hamiltonian = self.hamiltonian
+
+        params = []
+        for param in self.params():
+            if param.letter == 'Th' or param.letter == 'Tv':
+                params.append(_canonicalize_exponent(
+                    -self.tunneling * step_time / numpy.pi, 4))
+            elif param.letter == 'V':
+                p, q, i = param.subscripts
+                # Use the midpoint of the time segment
+                interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
+                params.append(_canonicalize_exponent(
+                    -0.5 * coulomb * interpolation_progress *
+                    step_time / numpy.pi, 2))
+
+        return numpy.array(params)
 
 
 def _is_horizontal_edge(p, q, x_dim, y_dim, periodic):
