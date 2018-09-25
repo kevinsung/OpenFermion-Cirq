@@ -341,6 +341,7 @@ class VariationalStudy:
             ) -> List[OptimizationTrialResult]:
 
         if num_processes is None:
+            # coverage: ignore
             num_processes = multiprocessing.cpu_count()
         pool = multiprocessing.Pool(num_processes)
         try:
