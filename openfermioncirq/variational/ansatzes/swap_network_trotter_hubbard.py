@@ -63,8 +63,7 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
         self.iterations = iterations
 
         if adiabatic_evolution_time is None:
-            adiabatic_evolution_time = (
-                    numpy.sum(numpy.abs(hamiltonian.two_body)))
+            adiabatic_evolution_time = abs(coulomb) * x_dim * y_dim
         self.adiabatic_evolution_time = cast(float, adiabatic_evolution_time)
 
         super().__init__(qubits)
@@ -157,7 +156,6 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
 
         total_time = self.adiabatic_evolution_time
         step_time = total_time / self.iterations
-        hamiltonian = self.hamiltonian
 
         params = []
         for param in self.params():
@@ -165,11 +163,11 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                 params.append(_canonicalize_exponent(
                     -self.tunneling * step_time / numpy.pi, 4))
             elif param.letter == 'V':
-                p, q, i = param.subscripts
+                i, = param.subscripts
                 # Use the midpoint of the time segment
                 interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
                 params.append(_canonicalize_exponent(
-                    -0.5 * coulomb * interpolation_progress *
+                    -0.5 * self.coulomb * interpolation_progress *
                     step_time / numpy.pi, 2))
 
         return numpy.array(params)
@@ -177,9 +175,10 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
 
 def _is_horizontal_edge(p, q, x_dim, y_dim, periodic):
     n_sites = x_dim*y_dim
-    if p >= n_sites:
+    if p < n_sites and q >= n_sites or q < n_sites and p >= n_sites:
+        return False
+    if p >= n_sites and q >= n_sites:
         p -= n_sites
-    if q >= n_sites:
         q -= n_sites
     return (q == _right_neighbor(p, x_dim, y_dim, periodic)
             or p == _right_neighbor(q, x_dim, y_dim, periodic))
@@ -187,9 +186,10 @@ def _is_horizontal_edge(p, q, x_dim, y_dim, periodic):
 
 def _is_vertical_edge(p, q, x_dim, y_dim, periodic):
     n_sites = x_dim*y_dim
-    if p >= n_sites:
+    if p < n_sites and q >= n_sites or q < n_sites and p >= n_sites:
+        return False
+    if p >= n_sites and q >= n_sites:
         p -= n_sites
-    if q >= n_sites:
         q -= n_sites
     return (q == _bottom_neighbor(p, x_dim, y_dim, periodic)
             or p == _bottom_neighbor(q, x_dim, y_dim, periodic))
