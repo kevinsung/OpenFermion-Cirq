@@ -111,3 +111,7 @@ class Dycors(OptimizationAlgorithm):
         return OptimizationResult(
                 optimal_value=result.value,
                 optimal_parameters=result.params[0])
+
+    @property
+    def name(self) -> str:
+        return 'DYCORS'
