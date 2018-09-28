@@ -45,3 +45,7 @@ class Bobyqa(OptimizationAlgorithm):
         return OptimizationResult(optimal_value=result.f,
                 optimal_parameters=result.x,
                 num_evaluations=result.nf)
+
+    @property
+    def name(self) -> str:
+        return 'BOBYQA'
