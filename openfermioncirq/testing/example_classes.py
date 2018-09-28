@@ -12,7 +12,7 @@
 
 """Subclasses of abstract classes for use in tests."""
 
-from typing import Iterable, Optional, Sequence, Union, cast
+from typing import Iterable, Optional, Sequence, Tuple, Union, cast
 
 import numpy
 
@@ -50,12 +50,37 @@ class ExampleAlgorithm(OptimizationAlgorithm):
                 message='success')
 
 
+class LazyAlgorithm(OptimizationAlgorithm):
+    """Just returns the initial guess, or the zeros vector."""
+
+    def optimize(self,
+                 black_box: BlackBox,
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
+                 ) -> OptimizationResult:
+        if initial_guess is None:
+            # coverage: ignore
+            initial_guess = numpy.zeros(black_box.dimension)
+        opt = black_box.evaluate(initial_guess)
+        return OptimizationResult(
+                optimal_value=opt,
+                optimal_parameters=initial_guess,
+                num_evaluations=1,
+                cost_spent=0.0,
+                status=0,
+                message='success')
+
+
 class ExampleBlackBox(BlackBox):
     """Returns the sum of the squares of the inputs."""
 
     @property
     def dimension(self) -> int:
         return 2
+
+    @property
+    def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
+        return [(-10.0, 10.0), (-10.0, 10.0)]
 
     def _evaluate(self,
                   x: numpy.ndarray) -> float:

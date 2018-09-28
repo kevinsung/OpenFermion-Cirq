@@ -16,7 +16,7 @@ Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
 
-from openfermioncirq.contrib.bobyqa import Bobyqa
+from openfermioncirq.contrib.bobyqa.bobyqa import Bobyqa
 
 from openfermioncirq.contrib.rbfopt import RBFOpt
 
