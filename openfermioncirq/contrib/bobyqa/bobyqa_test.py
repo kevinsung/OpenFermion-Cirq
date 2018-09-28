@@ -30,22 +30,3 @@ def test_bobyqa_optimize():
     result = algorithm.optimize(black_box, initial_guess=numpy.zeros(2))
 
     assert isinstance(result.optimal_value, float)
-
-
-def test_bobyqa_optimize_study():
-    ansatz = ExampleAnsatz()
-    objective = ExampleVariationalObjective()
-    study = VariationalStudy('study', ansatz, objective)
-    algorithm = Bobyqa(
-            options={'maxfun': 10,
-                     'objfun_has_noise': True}
-    )
-
-    result = study.optimize(
-            OptimizationParams(
-                algorithm,
-                cost_of_evaluate=1e5),
-            reevaluate_final_params=True
-    )
-
-    assert isinstance(result, OptimizationTrialResult)
