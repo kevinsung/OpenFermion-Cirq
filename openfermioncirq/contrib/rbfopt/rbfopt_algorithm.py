@@ -84,7 +84,10 @@ class RBFOpt(OptimizationAlgorithm):
         rbfopt_black_box = RBFOptBlackBox(black_box,
                                           self.cost_of_evaluate_noisy,
                                           self.confidence_of_evaluate_noisy)
-        if initial_guess_array is not None:
+        if initial_guess_array is None:
+            initial_guess_array = [initial_guess]
+
+        if initial_guess_array is not None or initial_guess is not None:
             init_node_val = numpy.array(
                     [black_box.evaluate(initial_guess_array[i])
                      for i in range(len(initial_guess_array))])
