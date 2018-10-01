@@ -28,15 +28,24 @@ class Bobyqa(OptimizationAlgorithm):
                  initial_guess: Optional[numpy.ndarray]=None,
                  initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:
+
         bounds = None
+
         if black_box.bounds is not None:
             mins = [bound[0] for bound in black_box.bounds]
             maxs = [bound[1] for bound in black_box.bounds]
             bounds = (numpy.array(mins), numpy.array(maxs))
-        result = pybobyqa.solve(black_box.evaluate,
-                                initial_guess,
-                                bounds=bounds,
-                                **self.options)
+
+        result = pybobyqa.solve(
+                black_box.evaluate,
+                initial_guess,
+                bounds=bounds,
+                **self.options)
+
         return OptimizationResult(optimal_value=result.f,
-                              optimal_parameters=result.x,
-                              num_evaluations=result.nf)
+                optimal_parameters=result.x,
+                num_evaluations=result.nf)
+
+    @property
+    def name(self) -> str:
+        return 'BOBYQA'
