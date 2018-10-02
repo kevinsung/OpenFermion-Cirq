@@ -19,19 +19,38 @@ import numpy
 import cirq
 
 
-class FermionicSwapGate(cirq.InterchangeableQubitsGate, cirq.TwoQubitGate):
+class FermionicSwapGate(cirq.EigenGate,
+                        cirq.InterchangeableQubitsGate,
+                        cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
-    def _unitary_(self) -> numpy.ndarray:
-        return numpy.array([[1, 0, 0, 0],
-                            [0, 0, 1, 0],
-                            [0, 1, 0, 0],
-                            [0, 0, 0, -1]])
+    def __init__(self, *,  # Forces keyword args.
+                 half_turns: Union[cirq.Symbol, float] = 1.0) -> None:
+        super().__init__(exponent=half_turns)
 
-    def __pow__(self, power) -> 'FermionicSwapGate':
-        if power in [1, -1]:
-            return self
-        return NotImplemented
+    def _eigen_components(self):
+        return [
+            (0, numpy.array([[1, 0,   0,   0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0,   0,   0]])),
+            (1, numpy.array([[0,  0,    0,   0],
+                             [0,  0.5, -0.5, 0],
+                             [0, -0.5,  0.5, 0],
+                             [0,  0,    0,   1]])),
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self,
+                       exponent: Union[cirq.Symbol, float]
+                       ) -> 'FermionicSwapGate':
+        return FermionicSwapGate(half_turns=exponent)
+
+    @property
+    def half_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> Tuple[str, str]:
@@ -39,8 +58,10 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate, cirq.TwoQubitGate):
             return '×ᶠ', '×ᶠ'
         return 'fswap', 'fswap'
 
-    def __repr__(self):
-        return 'FSWAP'
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'FSWAP'
+        return '(FSWAP**{!r})'.format(self.half_turns)
 
 
 class XXYYGate(cirq.EigenGate,
