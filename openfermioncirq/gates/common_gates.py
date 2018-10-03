@@ -58,6 +58,11 @@ class FermionicSwapGate(cirq.EigenGate,
             return '×ᶠ', '×ᶠ'
         return 'fswap', 'fswap'
 
+    def __str__(self) -> str:
+        if self.half_turns == 1:
+            return 'FSWAP'
+        return 'FSWAP**{!r}'.format(self.half_turns)
+
     def __repr__(self) -> str:
         if self.half_turns == 1:
             return 'FSWAP'

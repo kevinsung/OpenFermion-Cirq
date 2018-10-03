@@ -21,7 +21,7 @@ from openfermioncirq import FSWAP, XXYY, XXYYGate, YXXY, YXXYGate, ZZ, ZZGate
 
 
 def test_fswap_interchangeable():
-    a, b = cirq.LineQubit(0), cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert FSWAP(a, b) == FSWAP(b, a)
 
 
@@ -29,30 +29,53 @@ def test_fswap_inverse():
     assert FSWAP**-1 == FSWAP
 
 
+def test_fswap_str():
+    assert str(FSWAP) == 'FSWAP'
+    assert str(FSWAP**0.5) == 'FSWAP**0.5'
+    assert str(FSWAP**-0.25) == 'FSWAP**-0.25'
+
+
 def test_fswap_repr():
     assert repr(FSWAP) == 'FSWAP'
+    assert repr(FSWAP**0.5) == '(FSWAP**0.5)'
+    assert repr(FSWAP**-0.25) == '(FSWAP**-0.25)'
 
 
-def test_fswap_on_simulator():
-    simulator = cirq.google.XmonSimulator()
-    a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(FSWAP(a, b))
+def test_fswap_matrix():
+    numpy.testing.assert_allclose(cirq.unitary(FSWAP),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 1, 0, 0],
+                                               [0, 0, 0, -1]]))
 
-    initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state,
-            numpy.array([1, 0, 1, 0]) / numpy.sqrt(2),
-            atol=1e-7)
+    numpy.testing.assert_allclose(cirq.unitary(FSWAP**0.5),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0.5+0.5j, 0.5-0.5j, 0],
+                                               [0, 0.5-0.5j, 0.5+0.5j, 0],
+                                               [0, 0, 0, 1j]]))
 
-    initial_state = (numpy.array([0, 1, 0, 1], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state,
-            numpy.array([0, 0, 1, -1]) / numpy.sqrt(2),
-            atol=1e-7)
+    assert numpy.allclose(
+        cirq.apply_unitary_to_tensor(
+            FSWAP,
+            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(FSWAP).reshape((2,) * 4))
+
+    assert numpy.allclose(
+        cirq.apply_unitary_to_tensor(
+            FSWAP**0.5,
+            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(FSWAP**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        FSWAP**cirq.Symbol('s'),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
 
 
 def test_xxyy_init():
