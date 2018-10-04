@@ -54,28 +54,9 @@ def test_fswap_matrix():
                                                [0, 0.5-0.5j, 0.5+0.5j, 0],
                                                [0, 0, 0, 1j]]))
 
-    assert numpy.allclose(
-        cirq.apply_unitary_to_tensor(
-            FSWAP,
-            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-            [0, 1]),
-        cirq.unitary(FSWAP).reshape((2,) * 4))
-
-    assert numpy.allclose(
-        cirq.apply_unitary_to_tensor(
-            FSWAP**0.5,
-            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-            numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-            [0, 1]),
-        cirq.unitary(FSWAP**0.5).reshape((2,) * 4))
-
-    assert cirq.apply_unitary_to_tensor(
-        FSWAP**cirq.Symbol('s'),
-        numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-        numpy.eye(4, dtype=numpy.complex128).reshape((2,) * 4),
-        [0, 1],
-        default=None) is None
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        val=FSWAP,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
 
 
 def test_xxyy_init():

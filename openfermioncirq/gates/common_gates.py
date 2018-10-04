@@ -12,7 +12,7 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Sequence, Tuple
 
 import numpy
 
@@ -47,6 +47,24 @@ class FermionicSwapGate(cirq.EigenGate,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'FermionicSwapGate':
         return FermionicSwapGate(half_turns=exponent)
+
+    def _apply_unitary_to_tensor_(
+            self,
+            target_tensor: numpy.ndarray,
+            available_buffer: numpy.ndarray,
+            axes: Sequence[int],
+            ) -> Union[numpy.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        oo = cirq.slice_for_qubits_equal_to(axes, 0b11)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        target_tensor[oo] = -target_tensor[oo]
+        return target_tensor
 
     @property
     def half_turns(self) -> Union[cirq.Symbol, float]:
