@@ -1,3 +1,4 @@
+cma
 Py-BOBYQA
 pySOT
 rbfopt
