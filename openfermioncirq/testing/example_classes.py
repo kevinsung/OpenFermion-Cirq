@@ -98,6 +98,12 @@ class ExampleBlackBoxNoisy(ExampleBlackBox):
                             cost: float) -> float:
         return numpy.sum(x**2) + numpy.random.randn() / cost
 
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        return -2 * confidence / cost, 2 * confidence / cost
+
 
 class ExampleStatefulBlackBox(ExampleBlackBox, StatefulBlackBox):
     """Returns the sum of the squares of the inputs."""
