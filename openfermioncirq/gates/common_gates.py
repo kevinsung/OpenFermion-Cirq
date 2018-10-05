@@ -63,7 +63,7 @@ class FermionicSwapGate(cirq.EigenGate,
         available_buffer[zo] = target_tensor[zo]
         target_tensor[zo] = target_tensor[oz]
         target_tensor[oz] = available_buffer[zo]
-        target_tensor[oo] = -target_tensor[oo]
+        target_tensor[oo] *= -1
         return target_tensor
 
     @property
