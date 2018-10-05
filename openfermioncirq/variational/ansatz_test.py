@@ -26,11 +26,6 @@ def test_variational_ansatz_circuit():
 """.strip()
 
 
-def test_variational_ansatz_param_bounds():
-    ansatz = ExampleAnsatz()
-    assert ansatz.param_bounds() is None
-
-
 def test_variational_ansatz_param_resolver():
     ansatz = ExampleAnsatz()
     resolver = ansatz.param_resolver(numpy.arange(2, dtype=float))
