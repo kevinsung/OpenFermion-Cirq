@@ -2,3 +2,4 @@ cma
 Py-BOBYQA
 pySOT
 rbfopt
+scikit-optimize

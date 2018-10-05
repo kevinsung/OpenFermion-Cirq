@@ -124,6 +124,9 @@ class ExampleAnsatz(VariationalAnsatz):
         for i in range(2):
             yield cirq.Symbol('theta{}'.format(i))
 
+    def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
+        return [(-1.0, 1.0), (-1.0, 1.0)]
+
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
 
