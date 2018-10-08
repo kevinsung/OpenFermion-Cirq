@@ -17,7 +17,13 @@ import cirq
 import openfermion
 from openfermion import random_diagonal_coulomb_hamiltonian
 
-from openfermioncirq import HamiltonianObjective
+from openfermioncirq import (
+        HamiltonianObjective,
+        VariationalStudy,
+        SwapNetworkTrotterAnsatz)
+from openfermioncirq.optimization import OptimizationParams
+from openfermioncirq.testing import ExampleAlgorithm
+from openfermioncirq.variational import variational_black_box
 
 
 # Construct a Hamiltonian for testing
@@ -101,3 +107,22 @@ def test_hamiltonian_objective_init_qubit_operator():
 
     obj = HamiltonianObjective(openfermion.QubitOperator((0, 'X')))
     assert obj.hamiltonian == openfermion.QubitOperator((0, 'X'))
+
+
+def test_hamiltonian_objective_seed():
+    study = VariationalStudy(
+            'study',
+            SwapNetworkTrotterAnsatz(test_hamiltonian),
+            HamiltonianObjective(test_hamiltonian),
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL)
+    test_algorithm = ExampleAlgorithm()
+    trial_result = study.optimize(
+            OptimizationParams(test_algorithm, cost_of_evaluate=1.0),
+            repetitions=2,
+            seeds=[7, 7],
+            use_multiprocessing=True)
+    function_values_0 = [vals[0]
+                         for vals in trial_result.results[0].function_values]
+    function_values_1 = [vals[0]
+                         for vals in trial_result.results[1].function_values]
+    numpy.testing.assert_allclose(function_values_0, function_values_1)

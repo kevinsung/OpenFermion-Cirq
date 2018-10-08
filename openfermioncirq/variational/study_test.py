@@ -266,8 +266,7 @@ def test_variational_black_box_evaluate_with_cost():
             0.0)
 
     black_box_noisy = XmonSimulateVariationalBlackBox(
-            test_ansatz, test_objective_noisy)
-    numpy.random.seed(33534)
+            test_ansatz, test_objective_noisy, seed=33534)
     noisy_val = black_box_noisy.evaluate_with_cost(
             numpy.array([0.5, 0.0]), 10.0)
     assert -0.8 < noisy_val < 1.2

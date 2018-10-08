@@ -102,7 +102,9 @@ class HamiltonianObjective(VariationalObjective):
                     "Don't know how to compute the value of a TrialResult that "
                     "is not an XmonSimulateTrialResult.")
 
-    def noise(self, cost: Optional[float]=None) -> float:
+    def noise(self,
+              cost: Optional[float]=None,
+              random_state: Optional[numpy.random.RandomState]=None) -> float:
         """A sample from a normal distribution with mean 0.
 
         The variance of the distribution is equal to L^2 / cost, where L is the
@@ -113,7 +115,10 @@ class HamiltonianObjective(VariationalObjective):
         """
         if cost is None:
             return 0.0
-        return numpy.random.normal(
+        if random_state is None:
+            return numpy.random.normal(
+                    loc=0.0, scale=numpy.sqrt(self.variance_bound / cost))
+        return random_state.normal(
                 loc=0.0, scale=numpy.sqrt(self.variance_bound / cost))
 
     def noise_bounds(self,

@@ -595,6 +595,7 @@ def _run_optimization(args) -> OptimizationResult:
                 objective=objective,
                 preparation_circuit=preparation_circuit,
                 initial_state=initial_state,
+                seed=seed,
                 cost_of_evaluate=optimization_params.cost_of_evaluate,
                 save_x_vals=save_x_vals)
     else:
@@ -603,6 +604,7 @@ def _run_optimization(args) -> OptimizationResult:
                 objective=objective,
                 preparation_circuit=preparation_circuit,
                 initial_state=initial_state,
+                seed=seed,
                 cost_of_evaluate=optimization_params.cost_of_evaluate)
 
     initial_guess = optimization_params.initial_guess
@@ -612,7 +614,6 @@ def _run_optimization(args) -> OptimizationResult:
     if initial_guess_array is None:
         initial_guess_array = numpy.array([default_initial_params])
 
-    numpy.random.seed(seed)
     t0 = time.time()
     result = optimization_params.algorithm.optimize(black_box,
                                                     initial_guess,

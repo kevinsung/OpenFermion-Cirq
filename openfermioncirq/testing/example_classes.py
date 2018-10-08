@@ -26,7 +26,7 @@ from openfermioncirq.variational.objective import VariationalObjective
 
 
 class ExampleAlgorithm(OptimizationAlgorithm):
-    """Evaluates 5 random points and returns the best answer found."""
+    """Evaluates 5 fixed points and returns the best answer found."""
 
     def optimize(self,
                  black_box: BlackBox,
@@ -35,8 +35,9 @@ class ExampleAlgorithm(OptimizationAlgorithm):
                  ) -> OptimizationResult:
         opt = numpy.inf
         opt_params = None
+        prng = numpy.random.RandomState(0)
         for _ in range(5):
-            guess = numpy.random.randn(black_box.dimension)
+            guess = prng.randn(black_box.dimension)
             val = black_box.evaluate(guess)
             if val < opt:
                 opt = val
@@ -44,7 +45,7 @@ class ExampleAlgorithm(OptimizationAlgorithm):
         return OptimizationResult(
                 optimal_value=opt,
                 optimal_parameters=cast(numpy.ndarray, opt_params),
-                num_evaluations=1,
+                num_evaluations=5,
                 cost_spent=0.0,
                 status=0,
                 message='success')
@@ -162,7 +163,11 @@ class ExampleVariationalObjectiveNoisy(ExampleVariationalObjective):
     by the cost provided. If a cost is not specified, the noise is 0.
     """
 
-    def noise(self, cost: Optional[float]=None) -> float:
+    def noise(self,
+              cost: Optional[float]=None,
+              random_state: Optional[numpy.random.RandomState]=None) -> float:
         if cost is None:
             return 0.0  # coverage: ignore
-        return numpy.random.randn() / cost
+        if random_state is None:
+            return numpy.random.randn() / cost
+        return random_state.randn() / cost
