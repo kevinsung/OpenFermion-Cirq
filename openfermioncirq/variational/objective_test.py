@@ -39,8 +39,8 @@ def test_variational_objective_value():
 def test_variational_objective_noise():
     numpy.testing.assert_allclose(test_objective.noise(2.0), 0.0)
 
-    numpy.random.seed(26347)
-    assert -0.6 < test_objective_noisy.noise(2.0) < 0.6
+    prng = numpy.random.RandomState(26347)
+    assert -0.6 < test_objective_noisy.noise(2.0, prng) < 0.6
 
 
 def test_variational_objective_noise_bounds():

@@ -149,7 +149,11 @@ class ExampleVariationalObjectiveNoisy(ExampleVariationalObjective):
     by the cost provided. If a cost is not specified, the noise is 0.
     """
 
-    def noise(self, cost: Optional[float]=None) -> float:
+    def noise(self,
+              cost: Optional[float]=None,
+              random_state: Optional[numpy.random.RandomState]=None) -> float:
         if cost is None:
             return 0.0  # coverage: ignore
-        return numpy.random.randn() / cost
+        if random_state is None:
+            return numpy.random.randn() / cost
+        return random_state.randn() / cost

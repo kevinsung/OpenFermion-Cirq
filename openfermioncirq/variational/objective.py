@@ -46,7 +46,9 @@ class VariationalObjective(metaclass=abc.ABCMeta):
         """
         pass
 
-    def noise(self, cost: Optional[float]=None) -> float:
+    def noise(self,
+              cost: Optional[float]=None,
+              random_state: Optional[numpy.random.RandomState]=None) -> float:
         """Artificial noise that may be added to the true objective value.
 
         The `cost` argument is used to model situations in which it is possible

@@ -41,11 +41,13 @@ class VariationalBlackBox(BlackBox):
                  objective: VariationalObjective,
                  preparation_circuit: Optional[cirq.Circuit]=None,
                  initial_state: Union[int, numpy.ndarray]=0,
+                 seed: Optional[int]=None,
                  **kwargs) -> None:
         self.ansatz = ansatz
         self.objective = objective
         self.preparation_circuit = preparation_circuit or cirq.Circuit()
         self.initial_state = initial_state
+        self.random_state = numpy.random.RandomState(seed)
         super().__init__(**kwargs)
 
     @property
@@ -75,7 +77,7 @@ class VariationalBlackBox(BlackBox):
                             cost: float) -> float:
         """Evaluate parameters with a specified cost."""
         # Default: add artifical noise with the specified cost
-        return self._evaluate(x) + self.objective.noise(cost)
+        return self._evaluate(x) + self.objective.noise(cost, self.random_state)
 
     def noise_bounds(self,
                      cost: float,
