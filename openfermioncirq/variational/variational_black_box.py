@@ -14,6 +14,8 @@
 
 from typing import Optional, Sequence, Tuple, Union
 
+import time
+
 import numpy
 
 import cirq
