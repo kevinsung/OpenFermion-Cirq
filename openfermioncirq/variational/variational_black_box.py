@@ -105,7 +105,7 @@ class UnitarySimulateVariationalStatefulBlackBox(
         UnitarySimulateVariationalBlackBox,
         StatefulBlackBox):
     """A stateful black box encapsulating a variational objective function."""
-    pass
+
     def evaluate(self,
                  x: numpy.ndarray) -> float:
         """Evaluate the objective function and update state."""
