@@ -126,3 +126,18 @@ def test_hamiltonian_objective_seed():
     function_values_1 = [vals[0]
                          for vals in trial_result.results[1].function_values]
     numpy.testing.assert_allclose(function_values_0, function_values_1)
+
+
+def test_variational_black_box_save_noiseless_values():
+    study = VariationalStudy(
+            'study',
+            SwapNetworkTrotterAnsatz(test_hamiltonian),
+            HamiltonianObjective(test_hamiltonian),
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL)
+    test_algorithm = ExampleAlgorithm()
+    trial_result = study.optimize(
+            OptimizationParams(test_algorithm, cost_of_evaluate=1.0),
+            repetitions=1,
+            save_x_vals=True)
+    for a, b, c, d in trial_result.results[0].function_values:
+        numpy.testing.assert_allclose(d, study.value_of(c))
