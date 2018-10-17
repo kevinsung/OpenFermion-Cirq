@@ -133,7 +133,12 @@ class UnitarySimulateVariationalStatefulBlackBox(
         noiseless_val = self.evaluate_noiseless(x)
         val = noiseless_val + self.objective.noise(cost)
         self.function_values.append(
-                (val, cost, x if self._save_x_vals else None, noiseless_val)
+                (
+                    val,
+                    cost,
+                    numpy.copy(x) if self._save_x_vals else None,
+                    noiseless_val
+                )
         )
         self.cost_spent += cost
         self._time_of_last_query = time.time()
