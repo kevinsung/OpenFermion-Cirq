@@ -79,7 +79,7 @@ class VariationalBlackBox(BlackBox):
                             cost: float) -> float:
         """Evaluate parameters with a specified cost."""
         # Default: add artifical noise with the specified cost
-        return self._evaluate(x) + self.objective.noise(cost, self.random_state)
+        return self._evaluate(x) + self.objective.noise(cost)
 
     def noise_bounds(self,
                      cost: float,

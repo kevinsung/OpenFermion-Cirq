@@ -589,6 +589,8 @@ def _run_optimization(args) -> OptimizationResult:
             black_box_type
     ) = args
 
+    numpy.random.seed(seed)
+
     stateful = issubclass(black_box_type, StatefulBlackBox)
 
     if stateful:
