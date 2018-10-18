@@ -1,5 +1,5 @@
-cirq==0.3.1.*
+cirq
 numpy
-openfermion==0.8.1
+openfermion
 pandas
 scipy
