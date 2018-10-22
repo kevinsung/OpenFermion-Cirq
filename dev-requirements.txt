@@ -9,4 +9,4 @@ scipy
 virtualenv
 3to2
 git+git://github.com/quantumlib/openfermion#egg=openfermion
-git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
+git+git://github.com/quantumlib/cirq#egg=cirq
