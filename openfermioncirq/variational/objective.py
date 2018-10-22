@@ -37,7 +37,7 @@ class VariationalObjective(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def value(self,
               circuit_output: Union[cirq.TrialResult,
-                                    cirq.google.XmonSimulateTrialResult,
+                                    cirq.SimulationTrialResult,
                                     numpy.ndarray]
               ) -> float:
         """The evaluation function for a circuit output.
