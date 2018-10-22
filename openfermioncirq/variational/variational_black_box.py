@@ -14,10 +14,11 @@
 
 from typing import Optional, Sequence, Tuple, Union
 
+import abc
+
 import numpy
 
 import cirq
-from cirq import abc
 
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.objective import VariationalObjective

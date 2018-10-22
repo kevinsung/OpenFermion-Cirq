@@ -12,10 +12,11 @@
 
 from typing import Optional, Tuple, Union
 
+import abc
+
 import numpy
 
 import cirq
-from cirq import abc
 
 
 class VariationalObjective(metaclass=abc.ABCMeta):
