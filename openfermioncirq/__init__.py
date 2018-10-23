@@ -52,6 +52,8 @@ from openfermioncirq import (
     optimization,
     primitives,
     trotter,
-    variational)
+    variational,
+    testing,
+)
 
 from ._version import __version__

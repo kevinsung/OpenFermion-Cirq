@@ -12,11 +12,12 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Union, Sequence, Tuple
+from typing import Optional, Sequence, Union
 
 import numpy
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 class FermionicSwapGate(cirq.EigenGate,
@@ -53,7 +54,7 @@ class FermionicSwapGate(cirq.EigenGate,
             target_tensor: numpy.ndarray,
             available_buffer: numpy.ndarray,
             axes: Sequence[int],
-            ) -> Union[numpy.ndarray, type(NotImplemented)]:
+            ) -> Union[numpy.ndarray, NotImplementedType]:
         if self.half_turns != 1:
             return NotImplemented
 
@@ -71,10 +72,14 @@ class FermionicSwapGate(cirq.EigenGate,
         return self._exponent
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                               ) -> Tuple[str, str]:
+                               ) -> cirq.CircuitDiagramInfo:
         if args.use_unicode_characters:
-            return '×ᶠ', '×ᶠ'
-        return 'fswap', 'fswap'
+            symbols = '×ᶠ', '×ᶠ'
+        else:
+            symbols = 'fswap', 'fswap'
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=symbols,
+            exponent=self.half_turns)
 
     def __str__(self) -> str:
         if self.half_turns == 1:
@@ -83,8 +88,8 @@ class FermionicSwapGate(cirq.EigenGate,
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
-            return 'FSWAP'
-        return '(FSWAP**{!r})'.format(self.half_turns)
+            return 'ofc.FSWAP'
+        return '(ofc.FSWAP**{!r})'.format(self.half_turns)
 
 
 class XXYYGate(cirq.EigenGate,
