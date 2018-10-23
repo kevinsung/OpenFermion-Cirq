@@ -12,45 +12,84 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Sequence, Tuple
 
 import numpy
 
 import cirq
 
 
-class FermionicSwapGate(cirq.InterchangeableQubitsGate,
-                        cirq.KnownMatrix,
-                        cirq.ReversibleEffect,
-                        cirq.TextDiagrammable,
+class FermionicSwapGate(cirq.EigenGate,
+                        cirq.InterchangeableQubitsGate,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
-    def matrix(self):
-        return numpy.array([[1, 0, 0, 0],
-                            [0, 0, 1, 0],
-                            [0, 1, 0, 0],
-                            [0, 0, 0, -1]])
+    def __init__(self, *,  # Forces keyword args.
+                 half_turns: Union[cirq.Symbol, float] = 1.0) -> None:
+        super().__init__(exponent=half_turns)
 
-    def inverse(self):
-        return self
+    def _eigen_components(self):
+        return [
+            (0, numpy.array([[1, 0,   0,   0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0,   0,   0]])),
+            (1, numpy.array([[0,  0,    0,   0],
+                             [0,  0.5, -0.5, 0],
+                             [0, -0.5,  0.5, 0],
+                             [0,  0,    0,   1]])),
+        ]
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self,
+                       exponent: Union[cirq.Symbol, float]
+                       ) -> 'FermionicSwapGate':
+        return FermionicSwapGate(half_turns=exponent)
+
+    def _apply_unitary_to_tensor_(
+            self,
+            target_tensor: numpy.ndarray,
+            available_buffer: numpy.ndarray,
+            axes: Sequence[int],
+            ) -> Union[numpy.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        oo = cirq.slice_for_qubits_equal_to(axes, 0b11)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        target_tensor[oo] *= -1
+        return target_tensor
+
+    @property
+    def half_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, str]:
         if args.use_unicode_characters:
-            wire_symbols = ('×ᶠ', '×ᶠ')
-        else:
-            wire_symbols = ('fswap', 'fswap')
-        return cirq.TextDiagramInfo(wire_symbols=wire_symbols)
+            return '×ᶠ', '×ᶠ'
+        return 'fswap', 'fswap'
 
-    def __repr__(self):
-        return 'FSWAP'
+    def __str__(self) -> str:
+        if self.half_turns == 1:
+            return 'FSWAP'
+        return 'FSWAP**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'FSWAP'
+        return '(FSWAP**{!r})'.format(self.half_turns)
 
 
 class XXYYGate(cirq.EigenGate,
                cirq.CompositeGate,
                cirq.InterchangeableQubitsGate,
-               cirq.TextDiagrammable,
                cirq.TwoQubitGate):
     """XX + YY interaction.
 
@@ -144,9 +183,9 @@ class XXYYGate(cirq.EigenGate,
         yield YXXY(a, b) ** self.half_turns
         yield cirq.Z(a) ** -0.5
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('XXYY', 'XXYY'),
             exponent=self.half_turns)
 
@@ -158,7 +197,6 @@ class XXYYGate(cirq.EigenGate,
 
 class YXXYGate(cirq.EigenGate,
                cirq.CompositeGate,
-               cirq.TextDiagrammable,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
@@ -252,9 +290,9 @@ class YXXYGate(cirq.EigenGate,
         yield XXYY(a, b) ** self.half_turns
         yield cirq.Z(a) ** 0.5
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('YXXY', '#2'),
             exponent=self.half_turns)
 
@@ -266,7 +304,6 @@ class YXXYGate(cirq.EigenGate,
 
 class ZZGate(cirq.EigenGate,
              cirq.TwoQubitGate,
-             cirq.TextDiagrammable,
              cirq.InterchangeableQubitsGate):
     """ZZ interaction.
 
@@ -351,9 +388,9 @@ class ZZGate(cirq.EigenGate,
                        exponent: Union[cirq.Symbol, float]) -> 'ZZGate':
         return ZZGate(half_turns=exponent)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('Z', 'Z'),
             exponent=self.half_turns)
 

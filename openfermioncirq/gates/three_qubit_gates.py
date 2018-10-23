@@ -21,8 +21,7 @@ import cirq
 
 class Rot111Gate(cirq.EigenGate,
                  cirq.CompositeGate,
-                 cirq.InterchangeableQubitsGate,
-                 cirq.TextDiagrammable):
+                 cirq.InterchangeableQubitsGate):
     """Phases the |111> state of three qubits by a fixed amount."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -70,9 +69,9 @@ class Rot111Gate(cirq.EigenGate,
         yield cirq.CNOT(a, b)
         yield cirq.CZ(a, c)**(0.5 * self.half_turns)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('@', '@', '@'),
             exponent=self.half_turns)
 
@@ -82,9 +81,7 @@ class Rot111Gate(cirq.EigenGate,
         return 'CCZ**{!r}'.format(self.half_turns)
 
 
-class ControlledXXYYGate(cirq.EigenGate,
-                         cirq.CompositeGate,
-                         cirq.TextDiagrammable):
+class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -137,23 +134,17 @@ class ControlledXXYYGate(cirq.EigenGate,
 
     def default_decompose(self, qubits):
         control, a, b = qubits
-        yield cirq.Z(a)
-        yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
+        yield cirq.CNOT(a, b)
+        yield cirq.H(a)
         yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
-        yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
-        yield cirq.Z(a)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        # Note: Clifford optimization would merge this CZ into the CCZ decomp.
+        yield cirq.CZ(control, b)**(-self.half_turns / 2)
+        yield cirq.H(a)
+        yield cirq.CNOT(a, b)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('@', 'XXYY', 'XXYY'),
             exponent=self.half_turns)
 
@@ -163,9 +154,7 @@ class ControlledXXYYGate(cirq.EigenGate,
         return 'CXXYY**{!r}'.format(self.half_turns)
 
 
-class ControlledYXXYGate(cirq.EigenGate,
-                         cirq.CompositeGate,
-                         cirq.TextDiagrammable):
+class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
     """Controlled YX - XY interaction."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -219,25 +208,17 @@ class ControlledYXXYGate(cirq.EigenGate,
 
     def default_decompose(self, qubits):
         control, a, b = qubits
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
+        yield cirq.CNOT(a, b)
+        yield cirq.X(a)**0.5
         yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
-        yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        # Note: Clifford optimization would merge this CZ into the CCZ decomp.
+        yield cirq.CZ(control, b)**(-self.half_turns / 2)
+        yield cirq.X(a)**-0.5
+        yield cirq.CNOT(a, b)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
             wire_symbols=('@', 'YXXY', '#2'),
             exponent=self.half_turns)
 
