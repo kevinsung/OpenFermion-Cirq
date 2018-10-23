@@ -79,11 +79,17 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
@@ -164,11 +170,17 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
