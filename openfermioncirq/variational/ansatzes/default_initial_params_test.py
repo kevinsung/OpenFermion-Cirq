@@ -79,17 +79,23 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
-    circuit = (preparation_circuit + ansatz.circuit
-              ).with_parameters_resolved_by(
-                      ansatz.param_resolver(ansatz.default_initial_params()))
+    circuit = cirq.resolve_parameters(
+            preparation_circuit + ansatz.circuit,
+            ansatz.param_resolver(ansatz.default_initial_params()))
     result = circuit.apply_unitary_effect_to_state(
             qubit_order=ansatz.qubit_permutation(qubits))
     obj_val = objective.value(result)
@@ -164,17 +170,23 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
-    circuit = (preparation_circuit + ansatz.circuit
-              ).with_parameters_resolved_by(
-                      ansatz.param_resolver(ansatz.default_initial_params()))
+    circuit = cirq.resolve_parameters(
+            preparation_circuit + ansatz.circuit,
+            ansatz.param_resolver(ansatz.default_initial_params()))
     result = circuit.apply_unitary_effect_to_state(
             qubit_order=ansatz.qubit_permutation(qubits))
     obj_val = objective.value(result)

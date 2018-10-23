@@ -79,11 +79,29 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
         """Bounds on the parameters."""
         bounds = []
         for param in self.params():
-            if param.letter == 'V':
-                bounds.append((-1.0, 1.0))
-            else:
-                bounds.append((-2.0, 2.0))
+            if param.letter == 'Th':
+                s = 2.0 * self.y_dim*(self.x_dim-1)
+            elif param.letter == 'Tv':
+                s = 2.0 * self.x_dim*(self.y_dim-1)
+            elif param.letter == 'V':
+                s = 2.0 * self.x_dim*self.y_dim
+            bounds.append((-s, s))
         return bounds
+
+    def param_scale_factors(self) -> Iterable[float]:
+        """Coefficients to scale parameters by during optimization.
+
+        When an optimizer requests evaluation of a parameter array x,
+        each entry of x will be multiplied by the corresponding scaling factor
+        and the resulting values will be used to resolve Symbols.
+        """
+        for param in self.params():
+            if param.letter == 'Th':
+                yield 1 / (self.y_dim*(self.x_dim-1))
+            elif param.letter == 'Tv':
+                yield 1 / (self.x_dim*(self.y_dim-1))
+            elif param.letter == 'V':
+                yield 0.5 / (self.x_dim*self.y_dim)
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         """Produce qubits that can be used by the ansatz circuit."""
@@ -158,17 +176,18 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
         step_time = total_time / self.iterations
 
         params = []
-        for param in self.params():
+        for param, scale_factor in zip(self.params(),
+                                       self.param_scale_factors()):
             if param.letter == 'Th' or param.letter == 'Tv':
                 params.append(_canonicalize_exponent(
-                    -self.tunneling * step_time / numpy.pi, 4))
+                    -self.tunneling * step_time / numpy.pi, 4) / scale_factor)
             elif param.letter == 'V':
                 i, = param.subscripts
                 # Use the midpoint of the time segment
                 interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
                 params.append(_canonicalize_exponent(
                     -0.5 * self.coulomb * interpolation_progress *
-                    step_time / numpy.pi, 2))
+                    step_time / numpy.pi, 2) / scale_factor)
 
         return numpy.array(params)
 

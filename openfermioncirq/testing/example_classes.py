@@ -149,7 +149,7 @@ class ExampleVariationalObjective(VariationalObjective):
 
     def value(self,
               circuit_output: Union[cirq.TrialResult,
-                                    cirq.google.XmonSimulateTrialResult,
+                                    cirq.SimulationTrialResult,
                                     numpy.ndarray]
               ) -> float:
         measurements = circuit_output.measurements['all']
