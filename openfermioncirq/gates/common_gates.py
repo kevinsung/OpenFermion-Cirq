@@ -31,6 +31,7 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate, cirq.TwoQubitGate):
     def __pow__(self, power) -> 'FermionicSwapGate':
         if power in [1, -1]:
             return self
+        # coverage: ignore
         return NotImplemented
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
