@@ -1,5 +1,0 @@
-cirq
-numpy
-openfermion
-pandas
-scipy
