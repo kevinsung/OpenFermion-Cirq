@@ -38,6 +38,7 @@ def test_state_swap_eigen_component_args():
     with pytest.raises(ValueError):
         state_swap_eigen_component('01', 'ab', 1)
 
+
 @pytest.mark.parametrize('index_pair,n_qubits', [
     ((0, 1), 2),
     ((0, 3), 2),
@@ -87,13 +88,20 @@ def test_double_excitation_eq():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_double_excitation_decompose(half_turns):
-    gate = DoubleExcitation ** half_turns
-    qubits = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            DoubleExcitation**half_turns)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        matrix, cirq.unitary(gate), atol=1e-7)
+
+def test_apply_unitary():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        DoubleExcitation,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
+        qubit_count=4)
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        CombinedDoubleExcitationGate(),
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
+        qubit_count=4)
 
 
 @pytest.mark.parametrize('weights', numpy.random.rand(10, 3))
@@ -490,10 +498,5 @@ test_weights = [1.0, 0.5, 0.25, 0.1, 0.0, -0.5]
         numpy.random.rand(10, 3)
         ))
 def test_combined_double_excitation_decompose(weights):
-    gate = CombinedDoubleExcitationGate(weights)
-    qubits = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    circuit_matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    eigen_matrix = cirq.unitary(gate)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_matrix, eigen_matrix, rtol=1e-5, atol=1e-5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            CombinedDoubleExcitationGate(weights))

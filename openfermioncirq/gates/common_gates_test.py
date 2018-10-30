@@ -58,7 +58,7 @@ def test_fswap_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=ofc.FSWAP,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_xxyy_init():
@@ -103,16 +103,15 @@ def test_xxyy_repr():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_xxyy_decompose(half_turns):
-
-    gate = ofc.XXYY**half_turns
-    qubits = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-8)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            ofc.XXYY**half_turns)
 
 
 def test_xxyy_matrix():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        ofc.XXYY,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+
     numpy.testing.assert_allclose(cirq.unitary(ofc.XXYYGate(half_turns=2)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
@@ -186,16 +185,16 @@ def test_yxxy_repr():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_yxxy_decompose(half_turns):
-
-    gate = ofc.YXXY**half_turns
-    qubits = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-8)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            ofc.YXXY**half_turns)
 
 
 def test_yxxy_matrix():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        ofc.YXXY,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+
+
     numpy.testing.assert_allclose(cirq.unitary(ofc.YXXYGate(half_turns=2)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
@@ -268,6 +267,10 @@ def test_zz_repr():
 
 
 def test_zz_matrix():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        ofc.ZZ,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+
     numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(half_turns=0)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],

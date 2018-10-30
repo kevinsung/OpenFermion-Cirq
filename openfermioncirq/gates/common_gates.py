@@ -12,12 +12,17 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Sequence, Union
+from typing import Optional, Union, Sequence
 
-import numpy
+import numpy as np
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
+
+
+def rot11(rads: float):
+    """Phases the |11> state of two qubits by e^{i rads}."""
+    return cirq.CZ**(rads / np.pi)
 
 
 class FermionicSwapGate(cirq.EigenGate,
@@ -31,14 +36,14 @@ class FermionicSwapGate(cirq.EigenGate,
 
     def _eigen_components(self):
         return [
-            (0, numpy.array([[1, 0,   0,   0],
-                             [0, 0.5, 0.5, 0],
-                             [0, 0.5, 0.5, 0],
-                             [0, 0,   0,   0]])),
-            (1, numpy.array([[0,  0,    0,   0],
-                             [0,  0.5, -0.5, 0],
-                             [0, -0.5,  0.5, 0],
-                             [0,  0,    0,   1]])),
+            (0, np.array([[1, 0,   0,   0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0,   0,   0]])),
+            (1, np.array([[0,  0,    0,   0],
+                          [0,  0.5, -0.5, 0],
+                          [0, -0.5,  0.5, 0],
+                          [0,  0,    0,   1]])),
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
@@ -51,10 +56,10 @@ class FermionicSwapGate(cirq.EigenGate,
 
     def _apply_unitary_to_tensor_(
             self,
-            target_tensor: numpy.ndarray,
-            available_buffer: numpy.ndarray,
+            target_tensor: np.ndarray,
+            available_buffer: np.ndarray,
             axes: Sequence[int],
-            ) -> Union[numpy.ndarray, NotImplementedType]:
+            ) -> Union[np.ndarray, NotImplementedType]:
         if self.half_turns != 1:
             return NotImplemented
 
@@ -93,7 +98,6 @@ class FermionicSwapGate(cirq.EigenGate,
 
 
 class XXYYGate(cirq.EigenGate,
-               cirq.CompositeGate,
                cirq.InterchangeableQubitsGate,
                cirq.TwoQubitGate):
     """XX + YY interaction.
@@ -150,7 +154,7 @@ class XXYYGate(cirq.EigenGate,
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                     half_turns=half_turns,
@@ -165,24 +169,39 @@ class XXYYGate(cirq.EigenGate,
 
     def _eigen_components(self):
         return [
-            (0, numpy.diag([1, 0, 0, 1])),
-            (-0.5, numpy.array([[0, 0, 0, 0],
-                                [0, 0.5, 0.5, 0],
-                                [0, 0.5, 0.5, 0],
-                                [0, 0, 0, 0]])),
-            (+0.5, numpy.array([[0, 0, 0, 0],
-                                [0, 0.5, -0.5, 0],
-                                [0, -0.5, 0.5, 0],
-                                [0, 0, 0, 0]]))
+            (0, np.diag([1, 0, 0, 1])),
+            (-0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0, 0, 0]])),
+            (+0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, -0.5, 0],
+                             [0, -0.5, 0.5, 0],
+                             [0, 0, 0, 0]]))
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if cirq.is_parameterized(self):
+            return NotImplemented
+        inner_matrix = cirq.unitary(cirq.Rx(self.half_turns * np.pi))
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        return cirq.apply_matrix_to_slices(target_tensor,
+                                           inner_matrix,
+                                           slices=[zo, oz],
+                                           out=available_buffer)
+
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
         return XXYYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** 0.5
         yield YXXY(a, b) ** self.half_turns
@@ -201,7 +220,6 @@ class XXYYGate(cirq.EigenGate,
 
 
 class YXXYGate(cirq.EigenGate,
-               cirq.CompositeGate,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
@@ -257,7 +275,7 @@ class YXXYGate(cirq.EigenGate,
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                     half_turns=half_turns,
@@ -272,16 +290,31 @@ class YXXYGate(cirq.EigenGate,
 
     def _eigen_components(self):
         return [
-            (0, numpy.diag([1, 0, 0, 1])),
-            (-0.5, numpy.array([[0, 0, 0, 0],
-                                [0, 0.5, -0.5j, 0],
-                                [0, 0.5j, 0.5, 0],
-                                [0, 0, 0, 0]])),
-            (0.5, numpy.array([[0, 0, 0, 0],
-                               [0, 0.5, 0.5j, 0],
-                               [0, -0.5j, 0.5, 0],
-                               [0, 0, 0, 0]]))
+            (0, np.diag([1, 0, 0, 1])),
+            (-0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, -0.5j, 0],
+                             [0, 0.5j, 0.5, 0],
+                             [0, 0, 0, 0]])),
+            (0.5, np.array([[0, 0, 0, 0],
+                            [0, 0.5, 0.5j, 0],
+                            [0, -0.5j, 0.5, 0],
+                            [0, 0, 0, 0]]))
         ]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if cirq.is_parameterized(self):
+            return NotImplemented
+        inner_matrix = cirq.unitary(cirq.Ry(-self.half_turns * np.pi))
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        return cirq.apply_matrix_to_slices(target_tensor,
+                                           inner_matrix,
+                                           slices=[zo, oz],
+                                           out=available_buffer)
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
@@ -289,7 +322,7 @@ class YXXYGate(cirq.EigenGate,
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
         return YXXYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** -0.5
         yield XXYY(a, b) ** self.half_turns
@@ -367,7 +400,7 @@ class ZZGate(cirq.EigenGate,
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                     half_turns=half_turns,
@@ -380,10 +413,26 @@ class ZZGate(cirq.EigenGate,
     def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if cirq.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j**-self.half_turns
+        relative_phase = 1j**(2 * self.half_turns)
+        target_tensor *= global_phase
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        target_tensor[oz] *= relative_phase
+        target_tensor[zo] *= relative_phase
+        return target_tensor
+
     def _eigen_components(self):
         return [
-            (-0.5, numpy.diag([1, 0, 0, 1])),
-            (0.5, numpy.diag([0, 1, 1, 0])),
+            (-0.5, np.diag([1, 0, 0, 1])),
+            (0.5, np.diag([0, 1, 1, 0])),
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:

@@ -20,7 +20,8 @@ from openfermion import DiagonalCoulombHamiltonian
 from openfermioncirq import (
         ControlledXXYYGate,
         ControlledYXXYGate,
-        Rot111Gate,
+        rot11,
+        rot111,
         XXYYGate,
         YXXYGate,
         swap_network)
@@ -78,13 +79,13 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(a, b)
             yield YXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(a, b)
-            yield cirq.Rot11Gate(rads=
+            yield rot11(rads=
                     -self.hamiltonian.two_body[p, q] * time).on(a, b)
         yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.RotZGate(rads=
+        yield (cirq.Rz(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -93,7 +94,7 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         # symmetric
         def one_and_two_body_interaction_reverse_order(p, q, a, b
                 ) -> cirq.OP_TREE:
-            yield cirq.Rot11Gate(rads=
+            yield rot11(rads=
                     -self.hamiltonian.two_body[p, q] * time).on(a, b)
             yield YXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(a, b)
@@ -122,15 +123,14 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
             yield ControlledYXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
-            yield Rot111Gate(rads=
-                    -self.hamiltonian.two_body[p, q] * time).on(
+            yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
                             control_qubit, a, b)
         yield swap_network(
                 qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.Rot11Gate(rads=
+        yield (rot11(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
@@ -140,9 +140,8 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         # symmetric
         def one_and_two_body_interaction_reverse_order(p, q, a, b
                 ) -> cirq.OP_TREE:
-            yield Rot111Gate(rads=
-                    -self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
             yield ControlledYXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
@@ -153,7 +152,7 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                 fermionic=True, offset=True)
 
         # Apply phase from constant term
-        yield cirq.RotZGate(rads=
+        yield cirq.Rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
 class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
@@ -173,13 +172,13 @@ class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                     self.hamiltonian.one_body[p, q].real * time).on(a, b)
             yield YXXYGate(duration=
                     self.hamiltonian.one_body[p, q].imag * time).on(a, b)
-            yield cirq.Rot11Gate(rads=
+            yield rot11(rads=
                     -2 * self.hamiltonian.two_body[p, q] * time).on(a, b)
         yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.RotZGate(rads=
+        yield (cirq.Rz(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -221,20 +220,19 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
             yield ControlledYXXYGate(duration=
                     self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
-            yield Rot111Gate(rads=
-                    -2 * self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
         yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.Rot11Gate(rads=
+        yield (rot11(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
 
         # Apply phase from constant term
-        yield cirq.RotZGate(rads=
+        yield cirq.Rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,

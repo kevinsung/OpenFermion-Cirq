@@ -11,20 +11,24 @@
 # limitations under the License.
 
 from openfermioncirq.gates import (
-    CCZ,
     CXXYY,
     CYXXY,
+    CombinedDoubleExcitationGate,
     ControlledXXYYGate,
     ControlledYXXYGate,
+    DoubleExcitation,
+    DoubleExcitationGate,
     FSWAP,
     FermionicSwapGate,
-    Rot111Gate,
+    rot11,
+    rot111,
     XXYY,
     XXYYGate,
     YXXY,
     YXXYGate,
     ZZ,
-    ZZGate)
+    ZZGate,
+)
 
 from openfermioncirq.primitives import (
     prepare_gaussian_state,
