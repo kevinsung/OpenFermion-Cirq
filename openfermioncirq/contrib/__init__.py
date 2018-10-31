@@ -18,6 +18,7 @@ this package.
 
 from openfermioncirq.contrib.bobyqa.bobyqa import Bobyqa
 from openfermioncirq.contrib.cma.cma import CmaEs
+from openfermioncirq.contrib.nomad.nomad import Nomad
 from openfermioncirq.contrib.pysot.dycors import Dycors
 from openfermioncirq.contrib.rbfopt.rbfopt import RBFOpt
 from openfermioncirq.contrib.skopt import Forest, GBRT, GaussianProcesses
