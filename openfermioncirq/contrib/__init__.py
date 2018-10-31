@@ -15,3 +15,5 @@
 Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
+
+from openfermioncirq.contrib.nomad.nomad import Nomad
