@@ -14,21 +14,24 @@
 
 from typing import Iterable, Optional, Sequence, Tuple, cast
 
-import itertools
-
 import numpy
 
 import cirq
-import openfermion
 
-from openfermioncirq import XXYYGate, YXXYGate, swap_network
+from openfermioncirq import XXYYGate, swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
 
 
 class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
-    """An ansatz based on the fermionic swap network.
+    """A Hubbard model ansatz based on the fermionic swap network Trotter step.
+
+    Each Trotter step includes 3 parameters: one for the horizontal hopping
+    terms, one for the vertical hopping terms, and one for the on-site
+    interaction. This ansatz is similar to the one used in arXiv:1507.08969,
+    but corresponds to a different ordering for simulating the Hamiltonian
+    terms.
     """
 
     def __init__(self,
@@ -63,7 +66,7 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
         self.iterations = iterations
 
         if adiabatic_evolution_time is None:
-            adiabatic_evolution_time = abs(coulomb) * x_dim * y_dim
+            adiabatic_evolution_time = 0.1*abs(coulomb)*iterations
         self.adiabatic_evolution_time = cast(float, adiabatic_evolution_time)
 
         super().__init__(qubits)
@@ -71,37 +74,19 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
     def params(self) -> Iterable[cirq.Symbol]:
         """The parameters of the ansatz."""
         for i in range(self.iterations):
-            yield LetterWithSubscripts('Th', i)
-            yield LetterWithSubscripts('Tv', i)
+            if self.x_dim > 1:
+                yield LetterWithSubscripts('Th', i)
+            if self.y_dim > 1:
+                yield LetterWithSubscripts('Tv', i)
             yield LetterWithSubscripts('V', i)
 
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Bounds on the parameters."""
         bounds = []
         for param in self.params():
-            if param.letter == 'Th':
-                s = 2.0 * self.y_dim*(self.x_dim-1)
-            elif param.letter == 'Tv':
-                s = 2.0 * self.x_dim*(self.y_dim-1)
-            elif param.letter == 'V':
-                s = 2.0 * self.x_dim*self.y_dim
+            s = 1.0 if param.letter == 'V' else 2.0
             bounds.append((-s, s))
         return bounds
-
-    def param_scale_factors(self) -> Iterable[float]:
-        """Coefficients to scale parameters by during optimization.
-
-        When an optimizer requests evaluation of a parameter array x,
-        each entry of x will be multiplied by the corresponding scaling factor
-        and the resulting values will be used to resolve Symbols.
-        """
-        for param in self.params():
-            if param.letter == 'Th':
-                yield 1 / (self.y_dim*(self.x_dim-1))
-            elif param.letter == 'Tv':
-                yield 1 / (self.x_dim*(self.y_dim-1))
-            elif param.letter == 'V':
-                yield 0.5 / (self.x_dim*self.y_dim)
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         """Produce qubits that can be used by the ansatz circuit."""
@@ -111,8 +96,6 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit."""
 
-        param_set = set(self.params())
-
         for i in range(self.iterations):
 
             # Apply one- and two-body interactions with a swap network that
@@ -121,12 +104,14 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                 th_symbol = LetterWithSubscripts('Th', i)
                 tv_symbol = LetterWithSubscripts('Tv', i)
                 v_symbol = LetterWithSubscripts('V', i)
-                if _is_horizontal_edge(p, q, self.x_dim, self.y_dim, self.periodic):
+                if _is_horizontal_edge(
+                        p, q, self.x_dim, self.y_dim, self.periodic):
                     yield XXYYGate(half_turns=th_symbol).on(a, b)
-                if _is_vertical_edge(p, q, self.x_dim, self.y_dim, self.periodic):
+                if _is_vertical_edge(
+                        p, q, self.x_dim, self.y_dim, self.periodic):
                     yield XXYYGate(half_turns=tv_symbol).on(a, b)
                 if _are_same_site_opposite_spin(p, q, self.x_dim*self.y_dim):
-                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
+                    yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction, fermionic=True)
             qubits = qubits[::-1]
@@ -139,10 +124,12 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                 tv_symbol = LetterWithSubscripts('Tv', i)
                 v_symbol = LetterWithSubscripts('V', i)
                 if _are_same_site_opposite_spin(p, q, self.x_dim*self.y_dim):
-                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
-                if _is_vertical_edge(p, q, self.x_dim, self.y_dim, self.periodic):
+                    yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
+                if _is_vertical_edge(
+                        p, q, self.x_dim, self.y_dim, self.periodic):
                     yield XXYYGate(half_turns=tv_symbol).on(a, b)
-                if _is_horizontal_edge(p, q, self.x_dim, self.y_dim, self.periodic):
+                if _is_horizontal_edge(
+                        p, q, self.x_dim, self.y_dim, self.periodic):
                     yield XXYYGate(half_turns=th_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction_reversed_order,
