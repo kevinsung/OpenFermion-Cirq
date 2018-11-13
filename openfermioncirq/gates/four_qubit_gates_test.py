@@ -93,14 +93,12 @@ def test_double_excitation_decompose(half_turns):
 
 
 def test_apply_unitary():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         DoubleExcitation,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
         qubit_count=4)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         CombinedDoubleExcitationGate(),
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
         qubit_count=4)
 
 

@@ -187,8 +187,9 @@ class DoubleExcitationGate(cirq.EigenGate):
                             '/\\ \/',
                             '\/ /\\',
                             '\/ /\\')
-        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+        return cirq.CircuitDiagramInfo(
+                wire_symbols=wire_symbols,
+                exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -338,8 +339,9 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
             wire_symbols = ('⇊⇈',) * 4
         else:
             wire_symbols = ('a*a*aa',) * 4
-        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+        return cirq.CircuitDiagramInfo(
+                wire_symbols=wire_symbols,
+                exponent=self._diagram_exponent(args))
 
     def absorb_exponent_into_weights(self):
         self.weights = tuple((w * self._exponent) % 4 for w in self.weights)

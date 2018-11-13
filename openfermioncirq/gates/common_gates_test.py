@@ -56,9 +56,8 @@ def test_fswap_matrix():
                                                [0, 0.5-0.5j, 0.5+0.5j, 0],
                                                [0, 0, 0, 1j]]))
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=ofc.FSWAP,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        ofc.FSWAP)
 
 
 def test_xxyy_init():
@@ -108,9 +107,8 @@ def test_xxyy_decompose(half_turns):
 
 
 def test_xxyy_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        ofc.XXYY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        ofc.XXYY)
 
     numpy.testing.assert_allclose(cirq.unitary(ofc.XXYYGate(half_turns=2)),
                                   numpy.array([[1, 0, 0, 0],
@@ -190,9 +188,8 @@ def test_yxxy_decompose(half_turns):
 
 
 def test_yxxy_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        ofc.YXXY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        ofc.YXXY)
 
 
     numpy.testing.assert_allclose(cirq.unitary(ofc.YXXYGate(half_turns=2)),
@@ -267,9 +264,8 @@ def test_zz_repr():
 
 
 def test_zz_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        ofc.ZZ,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        ofc.ZZ)
 
     numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(half_turns=0)),
                                   numpy.array([[1, 0, 0, 0],
