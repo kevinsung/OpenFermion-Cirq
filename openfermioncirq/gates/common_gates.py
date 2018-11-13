@@ -30,10 +30,6 @@ class FermionicSwapGate(cirq.EigenGate,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[cirq.Symbol, float] = 1.0) -> None:
-        super().__init__(exponent=exponent)
-
     def _eigen_components(self):
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -45,11 +41,6 @@ class FermionicSwapGate(cirq.EigenGate,
                           [0, -0.5,  0.5, 0],
                           [0,  0,    0,   1]])),
         ]
-
-    def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]
-                       ) -> 'FermionicSwapGate':
-        return FermionicSwapGate(exponent=exponent)
 
     def _apply_unitary_to_tensor_(
             self,
