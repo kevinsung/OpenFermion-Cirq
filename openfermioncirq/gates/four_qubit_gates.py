@@ -33,7 +33,8 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1):
         └             ┘
 
     Args:
-        x, y: The states to swap, as bitstrings.
+        x: The first state to swap, as a bitstring.
+        y: The second state to swap, as a bitstring.
         sign: The sign of the off-diagonal elements (indicated by +/-1).
 
     Returns: The eigen-component.
@@ -70,42 +71,38 @@ class DoubleExcitationGate(cirq.EigenGate):
     """Evolve under -|0011><1100| + h.c. for some time."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[cirq.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initialize the gate.
 
-        At most one of half_turns, rads, degs, or duration may be specified.
+        At most one of exponent, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
-            half_turns: The exponent angle, in half-turns.
+            exponent: The exponent angle, in half-turns.
             rads: The exponent angle, in radians.
             degs: The exponent angle, in degrees.
             duration: The exponent as a duration of time.
         """
 
-        if len([1 for e in [half_turns, rads, degs, duration]
+        if len([1 for e in [exponent, rads, degs, duration]
                 if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns, rads, degs, or duration.')
+                             'Use ONE of exponent, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / np.pi
         else:
-            exponent = cirq.value.chosen_angle_to_half_turns(
-                half_turns=half_turns,
+            exponent = cirq.chosen_angle_to_half_turns(
+                half_turns=exponent,
                 rads=rads,
                 degs=degs)
 
         super().__init__(exponent=exponent)
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
 
     def _eigen_components(self):
         minus_one_component = np.zeros((16, 16))
@@ -128,7 +125,7 @@ class DoubleExcitationGate(cirq.EigenGate):
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Rx(-2*np.pi*self.half_turns))
+        inner_matrix = cirq.unitary(cirq.Rx(-2*np.pi*self.exponent))
         a = cirq.slice_for_qubits_equal_to(axes, 0b0011)
         b = cirq.slice_for_qubits_equal_to(axes, 0b1100)
         return cirq.apply_matrix_to_slices(target_tensor,
@@ -136,13 +133,10 @@ class DoubleExcitationGate(cirq.EigenGate):
                                            slices=[a, b],
                                            out=available_buffer)
 
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
-
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'DoubleExcitationGate':
-        return DoubleExcitationGate(half_turns=exponent)
+        return DoubleExcitationGate(exponent=exponent)
 
     def _decompose_(self, qubits):
         p, q, r, s = qubits
@@ -162,13 +156,13 @@ class DoubleExcitationGate(cirq.EigenGate):
         yield cirq.CNOT(r, s)
         yield cirq.CNOT(q, p)
         yield cirq.CNOT(q, r)
-        yield cirq.X(q) ** -self.half_turns
+        yield cirq.X(q) ** -self.exponent
         yield phase_parity_block
 
         yield cirq.CNOT(p, q)
         yield cirq.X(q)
         yield phase_parity_block
-        yield cirq.X(q) ** self.half_turns
+        yield cirq.X(q) ** self.exponent
         yield phase_parity_block
         yield cirq.CNOT(p, q)
         yield cirq.X(q)
@@ -187,13 +181,14 @@ class DoubleExcitationGate(cirq.EigenGate):
                             '/\\ \/',
                             '\/ /\\',
                             '\/ /\\')
-        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=wire_symbols,
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'DoubleExcitation'
-        return 'DoubleExcitation**{!r}'.format(self.half_turns)
+        return 'DoubleExcitation**{!r}'.format(self.exponent)
 
 
 DoubleExcitation = DoubleExcitationGate()
@@ -212,14 +207,14 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
                  weights: Tuple[float, float, float]=(1, 1, 1),
                  absorb_exponent: bool=True,
                  *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[cirq.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None
                  ) -> None:
         """Initialize the gate.
 
-        At most one of half_turns, rads, degs, or duration may be specified.
+        At most one of exponent, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
@@ -228,7 +223,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
             weights: The weights of the terms in the Hamiltonian.
             absorb_exponent: Whether to absorb the given exponent into the
                 weights. If true, the exponent of the returned gate is 1.
-            half_turns: The exponent angle, in half-turns.
+            exponent: The exponent angle, in half-turns.
             rads: The exponent angle, in radians.
             degs: The exponent angle, in degrees.
             duration: The exponent as a duration of time.
@@ -236,16 +231,16 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
 
         self.weights = weights
 
-        if len([1 for e in [half_turns, rads, degs, duration]
+        if len([1 for e in [exponent, rads, degs, duration]
                 if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns, rads, degs, or duration.')
+                             'Use ONE of exponent, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / np.pi
         else:
-            exponent = cirq.value.chosen_angle_to_half_turns(
-                half_turns=half_turns,
+            exponent = cirq.chosen_angle_to_half_turns(
+                half_turns=exponent,
                 rads=rads,
                 degs=degs)
 
@@ -254,15 +249,11 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         if absorb_exponent:
             self.absorb_exponent_into_weights()
 
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
-
     def _eigen_components(self):
         # projector onto subspace spanned by basis states with
         # Hamming weight != 2
         zero_component = np.diag([int(bin(i).count('1') != 2)
-                                     for i in range(16)])
+                                  for i in range(16)])
 
         state_pairs = (('1001', '0110'),
                        ('0101', '1010'),
@@ -271,13 +262,10 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         plus_minus_components = tuple(
             (weight * sign / 2,
              state_swap_eigen_component(state_pair[0], state_pair[1], sign))
-             for weight, state_pair in zip(self.weights, state_pairs)
-             for sign in (-1, 1))
+            for weight, state_pair in zip(self.weights, state_pairs)
+            for sign in (-1, 1))
 
         return ((0, zero_component),) + plus_minus_components
-
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return None
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
@@ -339,7 +327,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         else:
             wire_symbols = ('a*a*aa',) * 4
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+                                       exponent=self._diagram_exponent(args))
 
     def absorb_exponent_into_weights(self):
         self.weights = tuple((w * self._exponent) % 4 for w in self.weights)
@@ -352,26 +340,28 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Rx(-np.pi*self.half_turns))
+        am = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[0]))
+        bm = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[1]))
+        cm = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[2]))
 
-        a1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
-        b1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
-        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
+        a1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
+        b1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
+        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
 
-        a2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
-        b2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
-        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
+        a2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
+        b2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
+        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
 
         cirq.apply_matrix_to_slices(target_tensor,
-                                    inner_matrix,
+                                    am,
                                     slices=[a1, a2],
                                     out=available_buffer)
         cirq.apply_matrix_to_slices(available_buffer,
-                                    inner_matrix,
+                                    bm,
                                     slices=[b1, b2],
                                     out=target_tensor)
         return cirq.apply_matrix_to_slices(target_tensor,
-                                           inner_matrix,
+                                           cm,
                                            slices=[c1, c2],
                                            out=available_buffer)
 
