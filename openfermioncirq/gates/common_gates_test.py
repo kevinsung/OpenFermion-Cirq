@@ -231,80 +231,6 @@ def test_yxxy_matrix():
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
-def test_zz_init():
-    assert ofc.ZZGate(exponent=0.5).exponent == 0.5
-    assert ofc.ZZGate(exponent=1.5).exponent == 1.5
-    assert ofc.ZZGate(exponent=5).exponent == 5
-
-
-def test_zz_init_with_multiple_args_fails():
-    with pytest.raises(ValueError):
-        _ = ofc.ZZGate(exponent=1.0, duration=numpy.pi/2)
-
-
-def test_zz_eq():
-    eq = cirq.testing.EqualsTester()
-
-    eq.add_equality_group(ofc.ZZGate(exponent=3.5),
-                          ofc.ZZGate(exponent=-0.5),
-                          ofc.ZZGate(rads=-0.5 * numpy.pi),
-                          ofc.ZZGate(degs=-90),
-                          ofc.ZZGate(duration=-numpy.pi / 4))
-
-    eq.add_equality_group(ofc.ZZGate(exponent=2.5),
-                          ofc.ZZGate(exponent=0.5),
-                          ofc.ZZGate(rads=0.5 * numpy.pi),
-                          ofc.ZZGate(degs=90),
-                          ofc.ZZGate(duration=0.5 * numpy.pi / 2))
-
-    eq.make_equality_group(lambda: ofc.ZZGate(exponent=0))
-    eq.make_equality_group(lambda: ofc.ZZGate(exponent=0.1))
-
-
-def test_zz_repr():
-    assert repr(ofc.ZZGate(exponent=1)) == 'ZZ'
-    assert repr(ofc.ZZGate(exponent=0.5)) == 'ZZ**0.5'
-
-
-def test_zz_matrix():
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        ofc.ZZ,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
-    numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(exponent=0)),
-                                  numpy.array([[1, 0, 0, 0],
-                                               [0, 1, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
-
-    numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(exponent=0.5)),
-                                  numpy.array([[(-1j)**0.5, 0, 0, 0],
-                                               [0, 1j**0.5, 0, 0],
-                                               [0, 0, 1j**0.5, 0],
-                                               [0, 0, 0, (-1j)**0.5]]),
-                                  atol=1e-8)
-
-    numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(exponent=1)),
-                                  numpy.array([[-1j, 0, 0, 0],
-                                               [0, 1j, 0, 0],
-                                               [0, 0, 1j, 0],
-                                               [0, 0, 0, -1j]]),
-                                  atol=1e-8)
-
-    numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(exponent=-0.5)),
-                                  numpy.array([[(1j)**0.5, 0, 0, 0],
-                                               [0, (-1j)**0.5, 0, 0],
-                                               [0, 0, (-1j)**0.5, 0],
-                                               [0, 0, 0, (1j)**0.5]]),
-                                  atol=1e-8)
-
-    Z = numpy.array([[1, 0], [0, -1]])
-    ZZ = kron(Z, Z)
-    numpy.testing.assert_allclose(cirq.unitary(ofc.ZZGate(exponent=0.25)),
-                                  expm(-1j * numpy.pi * 0.25 * ZZ / 2))
-
-
 @pytest.mark.parametrize(
         'gate, exponent, initial_state, correct_state, atol', [
             (ofc.XXYY, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
@@ -324,15 +250,6 @@ def test_zz_matrix():
 
             (ofc.YXXY, -0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                    numpy.array([0, 1, 0, 0]), 1e-7),
-
-            (ofc.ZZ, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, -1, -1, 0]) / numpy.sqrt(2), 1e-7),
-
-            (ofc.ZZ, 0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, 1, 1, 0]) / numpy.sqrt(2), 1e-7),
-
-            (ofc.ZZ, -0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
-                   numpy.array([1, -1j, 0, 0]) / numpy.sqrt(2), 1e-7)
 ])
 def test_two_qubit_rotation_gates_on_simulator(
         gate, exponent, initial_state, correct_state, atol):
@@ -351,26 +268,24 @@ def test_common_gate_text_diagrams():
         ofc.FSWAP(a, b),
         ofc.FSWAP(a, b)**0.5,
         ofc.XXYY(a, b),
-        ofc.YXXY(a, b),
-        ofc.ZZ(a, b))
+        ofc.YXXY(a, b))
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×ᶠ───×ᶠ───────XXYY───YXXY───Z───
-      │    │        │      │      │
-b: ───×ᶠ───×ᶠ^0.5───XXYY───#2─────Z───
+a: ───×ᶠ───×ᶠ───────XXYY───YXXY───
+      │    │        │      │
+b: ───×ᶠ───×ᶠ^0.5───XXYY───#2─────
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---fswap---fswap-------XXYY---YXXY---Z---
-      |       |           |      |      |
-b: ---fswap---fswap^0.5---XXYY---#2-----Z---
+a: ---fswap---fswap-------XXYY---YXXY---
+      |       |           |      |
+b: ---fswap---fswap^0.5---XXYY---#2-----
 """, use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         ofc.XXYY(a, b)**0.5,
-        ofc.YXXY(a, b)**0.5,
-        ofc.ZZ(a, b)**0.5)
+        ofc.YXXY(a, b)**0.5)
     cirq.testing.assert_has_diagram(circuit, """
-a: ───XXYY───────YXXY─────Z───────
-      │          │        │
-b: ───XXYY^0.5───#2^0.5───Z^0.5───
+a: ───XXYY───────YXXY─────
+      │          │
+b: ───XXYY^0.5───#2^0.5───
 """)

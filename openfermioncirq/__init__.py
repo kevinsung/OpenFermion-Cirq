@@ -26,8 +26,6 @@ from openfermioncirq.gates import (
     XXYYGate,
     YXXY,
     YXXYGate,
-    ZZ,
-    ZZGate,
 )
 
 from openfermioncirq.primitives import (
