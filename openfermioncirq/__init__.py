@@ -20,6 +20,7 @@ from openfermioncirq.gates import (
     DoubleExcitationGate,
     FSWAP,
     FermionicSwapGate,
+    Rzz,
     rot11,
     rot111,
     XXYY,

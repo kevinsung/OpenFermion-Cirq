@@ -15,11 +15,12 @@
 from openfermioncirq.gates.common_gates import (
     FSWAP,
     FermionicSwapGate,
+    Rzz,
+    rot11,
     XXYY,
     XXYYGate,
     YXXY,
-    YXXYGate,
-    rot11)
+    YXXYGate)
 
 from openfermioncirq.gates.three_qubit_gates import (
     CXXYY,

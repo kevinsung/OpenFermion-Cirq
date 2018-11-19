@@ -25,6 +25,11 @@ def rot11(rads: float):
     return cirq.CZ**(rads / np.pi)
 
 
+def Rzz(rads: float):
+    """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
+    return cirq.ZZPowGate(exponent=2*rads/np.pi, global_shift=-0.5)
+
+
 class FermionicSwapGate(cirq.EigenGate,
                         cirq.InterchangeableQubitsGate,
                         cirq.TwoQubitGate):
