@@ -19,10 +19,11 @@ import openfermioncirq as ofc
 
 
 @pytest.mark.parametrize('rads', [
-    np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
 def test_rzz_unitary(rads):
     ZZ = np.diag([1, -1, -1, 1])
-    assert cirq.unitary(ofc.Rzz(rads)) == np.exp(-i * ZZ * rads)
+    np.testing.assert_allclose(cirq.unitary(ofc.Rzz(rads)),
+                               expm(-1j * ZZ * rads))
 
 
 def test_fswap_interchangeable():
