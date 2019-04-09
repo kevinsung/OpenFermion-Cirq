@@ -15,6 +15,7 @@
 from typing import Optional, Sequence, Tuple, Union
 
 import abc
+import time
 
 import numpy
 
@@ -105,7 +106,44 @@ class UnitarySimulateVariationalStatefulBlackBox(
         UnitarySimulateVariationalBlackBox,
         StatefulBlackBox):
     """A stateful black box encapsulating a variational objective function."""
-    pass
+
+    def evaluate(self,
+                 x: numpy.ndarray) -> float:
+        """Evaluate the objective function and update state."""
+        # If cost_of_evaluate is set, defer to evaluate_with_cost
+        if self.cost_of_evaluate is not None:
+            return self.evaluate_with_cost(x, self.cost_of_evaluate)
+
+        if self._time_of_last_query is not None:
+            self.wait_times.append(time.time() - self._time_of_last_query)
+
+        val = self._evaluate(x)
+        self.function_values.append(
+                (val, None, x if self._save_x_vals else None, val)
+        )
+        self._time_of_last_query = time.time()
+        return val
+
+    def evaluate_with_cost(self,
+                           x: numpy.ndarray,
+                           cost: float) -> float:
+        """Evaluate the objective function with a cost and update state."""
+        if self._time_of_last_query is not None:
+            self.wait_times.append(time.time() - self._time_of_last_query)
+
+        noiseless_val = self.evaluate_noiseless(x)
+        val = noiseless_val + self.objective.noise(cost)
+        self.function_values.append(
+                (
+                    val,
+                    cost,
+                    numpy.copy(x) if self._save_x_vals else None,
+                    noiseless_val
+                )
+        )
+        self.cost_spent += cost
+        self._time_of_last_query = time.time()
+        return val
 
 
 class XmonSimulateVariationalBlackBox(VariationalBlackBox):
